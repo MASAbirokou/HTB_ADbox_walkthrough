@@ -1,4 +1,4 @@
-まずsmbシェアをみると見慣れない`support-tools`なるものがある。
+まずsmbシェアを調べると、見慣れないsupport-toolsなフォルダがある。
 
 ```
 ┌──(shoebill㉿shoebill)-[~/Support_10.10.11.174]
@@ -16,7 +16,7 @@ Password for [WORKGROUP\shoebill]:
 	SYSVOL          Disk      Logon server share 
   ```
   
- パスワード無しで`support-tools`にアクセスして中身のを確認する。
+ パスワード無しでsupport-toolsにアクセスして中身を確認する。
  
  ```
 ┌──(shoebill㉿shoebill)-[~/Support_10.10.11.174]
@@ -35,25 +35,22 @@ smb: \> dir
   WiresharkPortable64_3.6.5.paf.exe      A 44398000  Sat May 28 20:19:43 2022
 ```
 
-以下のようにして再帰的にすべてダウンロードする。
+UserInfo.exe.zipがユーザ情報を得られそうなのでこれをダウンロードする。
 
 ```
-smb: \> mask ''
-smb: \> recurse on
-smb: \> prompt off
-smb: \> mget *
+smb: \> get UsreInfo.exe.zip
 ```
-得られたファイルのうち`UserInfo.exe.zip`にユーザの情報がありそうなので、これを解凍してdnSpyで解析する。
+ダウンロード後、解凍してdnSpyで解析する。
 
 ```
 ┌──(shoebill㉿shoebill)-[~/Support_10.10.11.174/support-tools]
 └─$ unzip UserInfo.exe.zip
 ```
-`UserInfo.exe`をdnSpyでみると暗号化されたパスワードと、キー、そしてパスワードを生成するような`getPassword()`関数が見つかる。
+`UserInfo.exe`をdnSpyでみると暗号化されたパスワード、キー、そしてパスワードを生成する`getPassword()`関数が見つかる。
 
 ![dnspy](https://user-images.githubusercontent.com/85237728/194679210-75055544-fd20-497f-bbca-8caedabb954e.png)
 
-XORは二回繰り返すとと元に戻るので、このコードを参考にPythonスクリプトを書く。
+XORは二回繰り返すと元に戻るので、このコードを参考にPythonスクリプトを書く。
 
 ```python
 #!/usr/bin/env python3
