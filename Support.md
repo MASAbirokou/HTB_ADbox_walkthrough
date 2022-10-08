@@ -38,4 +38,12 @@ smb: \> dir
 以下のようにして再帰的にすべてダウンロードする。
 
 ```
+smb: \> mask ''
+smb: \> recurse on
+smb: \> prompt off
+smb: \> mget *
 ```
+得られたファイルのうち"UserInfo.exe.zip"にユーザの情報がありそうなので、これを解凍してdnSpyで解析する。
+
+```
+
