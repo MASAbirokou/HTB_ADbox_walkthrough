@@ -83,7 +83,7 @@ ans: b'nvEfEK16^1aM4$e7AclUf8x$tRWxPWO1%lmz'
 
 ユーザ名ldap、パスワードnvEfEK16^1aM4$e7AclUf8x$tRWxPWO1%lmzのcredentialを使って`ldapsearch`コマンドを実行する。
 
-以下のように実行してUser情報をenumすると、ユーザsupportの「info」の欄にパスワードらしき文字列がある。
+以下のように実行してUser情報を調べると、ユーザsupportの「info」の欄にパスワードらしき文字列がある。
 
 ```
 ┌──(shoebill㉿shoebill)-[~/Support_10.10.11.174/LdapSearch]
@@ -124,3 +124,8 @@ objectGUID:: CqM5MfoxMEWepIBTs5an8Q==
 ```
 ![usertxt](https://user-images.githubusercontent.com/85237728/194680079-a0d7880f-ce8b-407e-8baf-f57a8367a305.png)
 
+# 感想
+
+やはり`ldapsearch`コマンドのenumが大切。ローカルの`bloodhound`や`ldapdomaindump`ではsupportのパスワードは得られなかった。
+
+`ldapsearch`の結果をよく読んだり、dnSpyが解析したソースコードをよく読んで、何がおこなれているのか？やパスワード・ユーザ名を読み取るのが重要。
