@@ -146,7 +146,7 @@ svc-alfrescoが属すグループの一つACCOUNT OPERATORS(Account Operatorsの
 
 WriteDaclのabuseとして、ユーザにDCSyncの権限を与えるという攻撃が考えられる
 
-> DCSyncについて：Domain ControllerになりすましてDomain Controller配下のアカウントのパスワードハッシュを取得する攻撃。MS-DRSRというDomain Controller間でデータ複製に
+> DCSync：Domain ControllerになりすましてDomain Controller配下のアカウントのパスワードハッシュを取得する攻撃。MS-DRSRというDomain Controller間でデータ複製に
 > 利用されるプロトコルを悪用する。Domain Controllerにデータの同期を要求してパスワードハッシュを得る。
 
 ACCOUNT OPERATORSのメンバはEXCHANGE WINDOWS PERMISSIONSグループに対してGenericAll（なんでもできる）なので、EXCHANGE WINDOWS PERMISSIONSに新規ユーザを追加する。
@@ -373,7 +373,7 @@ Mode                LastWriteTime         Length Name
 -a----       10/14/2022   5:15 AM           1345 ticket.kirbi
 ```
 
-ticket.kirbiをKali（というか攻撃者端末）に送る。
+ticket.kirbiをKaliに送る。
 
 それをccacheファイルに変換して環境変数KRB5CCNAMEを設定する：
 ```
