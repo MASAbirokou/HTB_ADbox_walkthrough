@@ -226,3 +226,6 @@ Microsoft Windows [Version 10.0.14393]
 C:\Windows\system32> whoami
 nt authority\system
 ```
+
+# 感想
+priv escのためにはそのユーザが属すグループ一つ一つについて「Reachable High Value Targets」等のenumを逐一すべきだ。
