@@ -1,3 +1,5 @@
+# Recon
+
 ```
 ┌──(shoebill㉿shoebill)-[~/Support_10.10.11.174]
 └─$ nmap -vv --reason -Pn -T4 -sV -sC --version-all -A --osscan-guess -p- 10.10.11.174
@@ -24,6 +26,8 @@ PORT      STATE SERVICE       REASON          VERSION
 9389/tcp  open  mc-nmf        syn-ack ttl 127 .NET Message Framing
 ...
 ```
+
+# initial shell 
 nmapの結果よりターゲット上でActive Directoryが動いてるとわかる。
 
 ポート445が開いてるのでsmbシェアを調べると、見慣れないsupport-toolsなるフォルダがある。
@@ -152,7 +156,7 @@ objectGUID:: CqM5MfoxMEWepIBTs5an8Q==
 support\support
 ```
 
-# Adminへの権限昇格
+# Privesc
 
 bloodhoundを使う。
 
