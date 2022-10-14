@@ -119,10 +119,34 @@ Status...........: Cracked
 ```
 
 ┌──(shoebill㉿shoebill)-[~/Forest_10.10.10.161]
-└─$ evil-winrm --ip 10.10.10.161 -u svc-alfresco -p s3rvice                                                                                                                                                     1 ⨯
+└─$ evil-winrm --ip 10.10.10.161 -u svc-alfresco -p s3rvice
 ...
 *Evil-WinRM* PS C:\Users\svc-alfresco\Documents> whoami
 htb\svc-alfresco
 ```
+
+# Privesc
+
+BloodHoundでターゲットのActive Directoryを解析する。
+
+ターゲット上にSharpHound.exeを送って実行：
+
+```
+\SharpHound.exe -c all --nozip
+```
+これにより生成されたjsonファイルたちをKaliに送り、bloodhoundにアップロードする。
+
+![hound-1](https://user-images.githubusercontent.com/85237728/195855775-8ca06ad9-7f03-4d61-90ba-08122b673882.png)
+
+svc-alfrescoが属すグループの一つACCOUNT OPERATORS(Account Operatorsのメンバは、ユーザ、ローカルグループ、グローバルグループのアカウントなどほとんどの種類のアカウントを作成および変更できる)に注目する。
+
+そして、その先をみると、EXCHANGE WINDOWS PERMISSIONSのメンバはドメインhtb.localにてWriteDaclの権限をもってる。すなわち、DACL (Discretionary Access Control List)の編集が可能。
+
+![houn-2](https://user-images.githubusercontent.com/85237728/195856484-6212a1d5-9df1-45d4-ae2d-90681f5b7df0.png)
+
+WriteDaclのabuseとして、ユーザにDCSyncの権限を与えるという攻撃が考えられる。
+
+ACCOUNT OPERATORSのメンバはEXCHANGE WINDOWS PERMISSIONSグループに対してGenericAll（なんでもできる）なので、EXCHANGE WINDOWS PERMISSIONSに新規ユーザを追加する。
+そしてその追加した新規ユーザにDCSync権限を与える。
 
 
