@@ -315,3 +315,28 @@ CASCADE\IT                                  Alias            S-1-5-21-3332504370
 CASCADE\AD Recycle Bin
 ...
 ```
+
+AD Recycle Binのメンバーは、（Active Directory ごみ箱機能が有効化された後に）削除されたオブジェクトを確認したり復元したりできる。
+
+参考：[【Active Directory】削除したオブジェクトをごみ箱から復元する](https://bizlog.tech/ad-object-restore/)
+
+次のように、削除済みオブジェクトを表示する：
+
+```
+*Evil-WinRM* PS C:\Users\arksvc\Documents> Get-ADObject -filter {isDeleted -eq $true} -IncludeDeletedObjects -Properties *
+...
+cascadeLegacyPwd                : YmFDVDNyMWFOMDBkbGVz
+CN                              : TempAdmin
+                                  DEL:f0cc344d-31e0-4866-bceb-a842791ca059
+codePage                        : 0
+countryCode                     : 0
+Created                         : 1/27/2020 3:23:08 AM
+createTimeStamp                 : 1/27/2020 3:23:08 AM
+Deleted                         : True
+Description                     :
+DisplayName                     : TempAdmin
+DistinguishedName               : CN=TempAdmin\0ADEL:f0cc344d-31e0-4866-bceb-a842791ca059,CN=Deleted Objects,DC=cascade,DC=local
+dSCorePropagationData           : {1/27/2020 3:23:08 AM, 1/1/1601 12:00:00 AM}
+givenName                       : TempAdmin
+...
+```
