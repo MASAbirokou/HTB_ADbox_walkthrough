@@ -288,7 +288,6 @@ smb: \> get CascCrypto.dll
 
 ![decrypt](https://user-images.githubusercontent.com/85237728/197941745-0f8d786d-2748-4a06-bea8-1cf6dac73ffb.png)
 
-arksvcはAD Recycle Binグループに属している：
 
 ```
 ┌──(shoebill㉿shoebill)-[~/Cascade_10.10.10.182]
@@ -296,7 +295,9 @@ arksvcはAD Recycle Binグループに属している：
 
 *Evil-WinRM* PS C:\Users\arksvc\Documents> whoami
 cascade\arksvc
-
+```
+arksvcはAD Recycle Binグループに属している：
+```
 *Evil-WinRM* PS C:\Users\arksvc\Documents> whoami /groups
 
 GROUP INFORMATION
@@ -341,11 +342,11 @@ givenName                       : TempAdmin
 ...
 ```
 
-先にSMBシェアのDataフォルダにあった”Meeting_Notes_June_2018.html”に次のように書いてある：
+SMBシェアのDataフォルダにあった”Meeting_Notes_June_2018.html”に次のように書いてある：
 
 ![htmlfile](https://user-images.githubusercontent.com/85237728/197943493-1f79dbcc-a0df-41c9-ab1d-04dbf52c0da1.png)
 
-AdministratorのパスワードがTempAdminのパスワードが同じ。
+AdministratorのパスワードがTempAdminのパスワードと同じ。
 
 TempAdminのパスワードをデコードする：
 
