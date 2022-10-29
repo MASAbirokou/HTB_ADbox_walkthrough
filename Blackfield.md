@@ -254,7 +254,7 @@ DefaultAccount:503:aad3b435b51404eeaad3b435b51404ee:31d6cfe0d16ae931b73c59d7e0c0
 
 # ntds.ditが必要
 
-secretsdump.pyでハッシュダンプする際に、**ntds.dit**が必要。
+secretsdump.pyでハッシュダンプする際に**ntds.dit**が必要。
 
 ntds.ditはAdmin権限でしかみれないが、`robocopy`コマンドで”バックアップとして”コピーすることは可能（svc_backupの権限より）。
 
