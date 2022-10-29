@@ -256,7 +256,7 @@ DefaultAccount:503:aad3b435b51404eeaad3b435b51404ee:31d6cfe0d16ae931b73c59d7e0c0
 
 secretsdump.pyでハッシュダンプする際に**ntds.dit**が必要。
 
-ntds.ditはAdmin権限でしかみれないが、`robocopy`コマンドで”バックアップとして”コピーすることは可能（svc_backupの権限より）。
+ntds.ditはAdmin権限でしか`copy`できないが、`robocopy`コマンドで”バックアップとして”コピーすることは可能（svc_backupの権限より）。
 
 しかしプロセスがアクティブなためコピーできないと言われる。そこで、新しくEドライブを作成し、そのドライブにCドライブごとコピーする。そしてEドライブからrobocopyする。
 
@@ -303,7 +303,7 @@ Mode                LastWriteTime         Length Name
 ```
 
 > `robocopy <コピー元> <コピー先> <コピーしたいファイル名>`という書式。`/b`オプションにより、”バックアップとして”コピーという意味になる。
-> このオプションを指定しないと、Access deniedとなる。
+> このオプションを指定しないと、Access deniedとなる。また、普通に`copy E:\Windows\NTDS\ntds.dit .`とやってもPermissionDeniedとなる。
 
 このntds.ditをKaliに送って、`secretsdump.py`を次のように実行する：
 
