@@ -17,7 +17,7 @@ Password for [WORKGROUP\shoebill]:
 	SYSVOL          Disk      Logon server share
 ```
 
-profiles$を除くとたくさんのフォルダがある：
+profiles$をみるとたくさんのフォルダがある：
 
 
 ```
