@@ -260,7 +260,7 @@ cifs/dc.support.htb /ptt
 
 このbase64表示のチケットをtempというファイル名でKali上保存する。
 
-そしたら以下のようにbase64をデコードしてaddmin.kirbiというファイル名で保存する。
+そしたら以下のようにbase64をデコードしてadmin.kirbiというファイル名で保存する。
 
 ```
 ┌──(shoebill㉿shoebill)-[~/Support_10.10.11.174]
