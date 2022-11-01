@@ -181,3 +181,13 @@ SSHがターゲット上で動いていたことを思い出しTomのシェル�
 ┌──(shoebill㉿shoebill)-[~]
 └─$ ssh tom@10.10.10.77
 ```
+ちなみにここでユーザnicoのパスワードが見つかった：
+```
+tom@REEL C:\Users\tom >reg query "HKLM\SOFTWARE\Microsoft\Windows NT\Currentversion\Winlogon"
+
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\Currentversion\Winlogon                                                        
+    ...
+    DefaultUserName    REG_SZ    nico                                                                                           
+    DisableLockWorkstation    REG_DWORD    0x0                                                                                  
+    DefaultPassword    REG_SZ    4dri@na2017!**
+```
