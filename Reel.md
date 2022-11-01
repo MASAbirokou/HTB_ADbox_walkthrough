@@ -193,8 +193,9 @@ HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\Currentversion\Winlogon
 ```
 
 ありがたいことに、最初からC:\Users\tom\Desktop\AD Audit\BloodHound\IngestorsにSharpHoundが用意されていた。
+しかしGroupPolicyによりうまく実行できない。
 
-しかしGroupPolicyによりうまく実行できないので、以下のようにExecutionPolicyを指定してPowerShellを起動してSharpHound.ps1を実行する：
+そこで以下のようにExecutionPolicyを指定してPowerShellを起動しSharpHound.ps1を実行する：
 
 ```
 tom@REEL C:\Users\tom\Desktop\AD Audit\BloodHound\Ingestors>powershell -ep Bypass
