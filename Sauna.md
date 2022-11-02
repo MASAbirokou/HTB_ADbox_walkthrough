@@ -43,6 +43,8 @@ PORT     STATE SERVICE REASON          VERSION
 
 これより、ユーザリストusers.txtを以下のように作成する：
 
+（※ いろんな形でユーザリストを作って試した結果この形がうまくいった）
+
 ```
 ┌──(shoebill㉿shoebill)-[~/Sauna_10.10.10.175]
 └─$ cat users.txt
