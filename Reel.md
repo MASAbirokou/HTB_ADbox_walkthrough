@@ -240,3 +240,7 @@ libreofficeで開くと各ユーザは何ができるか？（WriteDaclとかGen
 "herman@HTB.LOCAL","USER","","nico@HTB.LOCAL","USER","WriteOwner","","AccessAllowed","False"
 ```
 
+これは**tomがclaireに対してWriteOwner**ということ。つまりclaireのオーナーをtomに設定できるということ。
+
+claireのオーナーをtomにすれば、tomはclaireのパスワードを設定できる！
+
